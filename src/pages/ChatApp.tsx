@@ -1,33 +1,18 @@
-import { useState, useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send, Globe, Menu, X, Loader2 } from "lucide-react";
+import { Send, Globe, Menu, X, Loader2, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
-
-interface Message {
-  id: string;
-  type: "user" | "agent";
-  content: string;
-  timestamp: Date;
-  status?: "building" | "done";
-}
-
-const initialMessages: Message[] = [
-  {
-    id: "1",
-    type: "agent",
-    content: "مرحبًا. أنا Chat2Site، وكيلك الذكي لبناء المواقع. أخبرني عن مشروعك وسأبدأ البناء فورًا.",
-    timestamp: new Date(),
-  },
-];
+import { useAIChat } from "@/hooks/useAIChat";
+import { useToast } from "@/hooks/use-toast";
 
 const ChatApp = () => {
-  const [messages, setMessages] = useState<Message[]>(initialMessages);
+  const { messages, isStreaming, sendMessage, clearMessages } = useAIChat();
   const [input, setInput] = useState("");
-  const [isTyping, setIsTyping] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [publishStatus, setPublishStatus] = useState<"draft" | "building" | "published">("draft");
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { toast } = useToast();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -37,43 +22,19 @@ const ChatApp = () => {
     scrollToBottom();
   }, [messages]);
 
-  const handleSend = async () => {
-    if (!input.trim()) return;
-
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      type: "user",
-      content: input,
-      timestamp: new Date(),
-    };
-
-    setMessages((prev) => [...prev, userMessage]);
-    setInput("");
-    setIsTyping(true);
-    setPublishStatus("building");
-
-    // Simulate agent response
-    setTimeout(() => {
-      const responses = [
-        "تم إنشاء الصفحة الرئيسية بنجاح.",
-        "تم تعديل قسم الخدمات حسب طلبك.",
-        "تم تحسين الترتيب البصري للموقع.",
-        "تم إضافة نموذج التواصل.",
-        "تم تجهيز الموقع للنشر.",
-      ];
-
-      const agentMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        type: "agent",
-        content: responses[Math.floor(Math.random() * responses.length)],
-        timestamp: new Date(),
-        status: "done",
-      };
-
-      setMessages((prev) => [...prev, agentMessage]);
-      setIsTyping(false);
+  useEffect(() => {
+    if (isStreaming) {
+      setPublishStatus("building");
+    } else if (messages.length > 1) {
       setPublishStatus("draft");
-    }, 2000);
+    }
+  }, [isStreaming, messages.length]);
+
+  const handleSend = async () => {
+    if (!input.trim() || isStreaming) return;
+    const message = input;
+    setInput("");
+    await sendMessage(message);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -81,6 +42,22 @@ const ChatApp = () => {
       e.preventDefault();
       handleSend();
     }
+  };
+
+  const handlePublish = () => {
+    setPublishStatus("published");
+    toast({
+      title: "تم النشر!",
+      description: "موقعك الآن متاح على الإنترنت",
+    });
+  };
+
+  const handleClearChat = () => {
+    clearMessages();
+    toast({
+      title: "تم مسح المحادثة",
+      description: "يمكنك البدء من جديد",
+    });
   };
 
   return (
@@ -102,13 +79,22 @@ const ChatApp = () => {
 
         <nav className="flex-1 p-4">
           <div className="space-y-2">
-            <Link
-              to="/app"
-              className="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/10 text-primary font-medium"
-            >
-              <div className="w-2 h-2 rounded-full bg-primary" />
+            <div className="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/10 text-primary font-medium">
+              <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
               مشروع جديد
-            </Link>
+            </div>
+          </div>
+          
+          <div className="mt-6">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={handleClearChat}
+              className="w-full justify-start text-muted-foreground hover:text-destructive"
+            >
+              <Trash2 className="w-4 h-4 ml-2" />
+              مسح المحادثة
+            </Button>
           </div>
         </nav>
 
@@ -160,8 +146,8 @@ const ChatApp = () => {
           <Button
             variant={publishStatus === "published" ? "secondary" : "default"}
             size="sm"
-            disabled={publishStatus === "building"}
-            onClick={() => setPublishStatus("published")}
+            disabled={publishStatus === "building" || messages.length <= 1}
+            onClick={handlePublish}
           >
             <Globe className="w-4 h-4" />
             {publishStatus === "published" ? "تم النشر" : "انشر الآن"}
@@ -184,42 +170,39 @@ const ChatApp = () => {
                   <div className="flex items-start gap-3">
                     {message.type === "agent" && (
                       <div className="w-8 h-8 rounded-lg hero-gradient flex items-center justify-center flex-shrink-0">
-                        <span className="text-primary-foreground font-bold text-xs">AI</span>
+                        {message.status === "building" ? (
+                          <Loader2 className="w-4 h-4 text-primary-foreground animate-spin" />
+                        ) : (
+                          <span className="text-primary-foreground font-bold text-xs">AI</span>
+                        )}
                       </div>
                     )}
                     <div className="flex-1">
-                      <p className="text-foreground leading-relaxed">{message.content}</p>
-                      {message.status === "done" && (
+                      <p className="text-foreground leading-relaxed whitespace-pre-wrap">
+                        {message.content || (
+                          <span className="flex gap-1">
+                            <span className="w-2 h-2 rounded-full bg-primary/40 animate-typing" />
+                            <span className="w-2 h-2 rounded-full bg-primary/40 animate-typing" style={{ animationDelay: "0.2s" }} />
+                            <span className="w-2 h-2 rounded-full bg-primary/40 animate-typing" style={{ animationDelay: "0.4s" }} />
+                          </span>
+                        )}
+                      </p>
+                      {message.status === "done" && message.type === "agent" && message.content && (
                         <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
                           <div className="w-1.5 h-1.5 rounded-full status-ready" />
                           تم التنفيذ
+                        </div>
+                      )}
+                      {message.status === "error" && (
+                        <div className="mt-2 flex items-center gap-2 text-xs text-destructive">
+                          <div className="w-1.5 h-1.5 rounded-full bg-destructive" />
+                          فشل في التنفيذ
                         </div>
                       )}
                     </div>
                   </div>
                 </div>
               ))}
-
-              {isTyping && (
-                <div className="agent-message animate-fade-in">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg hero-gradient flex items-center justify-center">
-                      <Loader2 className="w-4 h-4 text-primary-foreground animate-spin" />
-                    </div>
-                    <div className="flex gap-1">
-                      <span className="w-2 h-2 rounded-full bg-primary/40 animate-typing" />
-                      <span
-                        className="w-2 h-2 rounded-full bg-primary/40 animate-typing"
-                        style={{ animationDelay: "0.2s" }}
-                      />
-                      <span
-                        className="w-2 h-2 rounded-full bg-primary/40 animate-typing"
-                        style={{ animationDelay: "0.4s" }}
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
 
               <div ref={messagesEndRef} />
             </div>
@@ -231,14 +214,21 @@ const ChatApp = () => {
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyPress={handleKeyPress}
-                  placeholder="اكتب ما تريد بناءه..."
+                  placeholder="اكتب ما تريد بناءه... مثال: موقع لمكتب محاماة في الرياض"
                   className="flex-1 text-right"
-                  disabled={isTyping}
+                  disabled={isStreaming}
                 />
-                <Button onClick={handleSend} disabled={!input.trim() || isTyping}>
-                  <Send className="w-4 h-4" />
+                <Button onClick={handleSend} disabled={!input.trim() || isStreaming}>
+                  {isStreaming ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Send className="w-4 h-4" />
+                  )}
                 </Button>
               </div>
+              <p className="mt-2 text-xs text-muted-foreground text-center">
+                مدعوم بـ Lovable AI • الردود تُولّد بالذكاء الاصطناعي
+              </p>
             </div>
           </div>
 
@@ -253,14 +243,36 @@ const ChatApp = () => {
               </div>
             </div>
             <div className="flex-1 flex items-center justify-center">
-              <div className="text-center p-8">
-                <div className="w-20 h-20 rounded-2xl bg-card shadow-card mx-auto mb-4 flex items-center justify-center">
-                  <Globe className="w-10 h-10 text-muted-foreground/50" />
+              {isStreaming ? (
+                <div className="text-center p-8">
+                  <div className="w-20 h-20 rounded-2xl hero-gradient mx-auto mb-4 flex items-center justify-center shadow-elevated">
+                    <Loader2 className="w-10 h-10 text-primary-foreground animate-spin" />
+                  </div>
+                  <p className="text-foreground font-medium mb-2">جاري بناء موقعك...</p>
+                  <p className="text-muted-foreground text-sm">يتم تنفيذ طلبك الآن</p>
                 </div>
-                <p className="text-muted-foreground">
-                  ابدأ المحادثة لرؤية موقعك يُبنى هنا
-                </p>
-              </div>
+              ) : messages.length > 1 ? (
+                <div className="text-center p-8">
+                  <div className="w-20 h-20 rounded-2xl bg-status-ready/10 mx-auto mb-4 flex items-center justify-center">
+                    <Globe className="w-10 h-10 text-status-ready" />
+                  </div>
+                  <p className="text-foreground font-medium mb-2">موقعك جاهز!</p>
+                  <p className="text-muted-foreground text-sm mb-4">اضغط "انشر الآن" لنشره على الإنترنت</p>
+                  <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-muted text-sm">
+                    <div className="w-2 h-2 rounded-full status-ready" />
+                    {messages.length - 1} تعديل تم تنفيذه
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center p-8">
+                  <div className="w-20 h-20 rounded-2xl bg-card shadow-card mx-auto mb-4 flex items-center justify-center">
+                    <Globe className="w-10 h-10 text-muted-foreground/50" />
+                  </div>
+                  <p className="text-muted-foreground">
+                    ابدأ المحادثة لرؤية موقعك يُبنى هنا
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </div>
