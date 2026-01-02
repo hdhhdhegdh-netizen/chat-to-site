@@ -1,33 +1,68 @@
+import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
-import { Plus, Globe, Settings, ExternalLink, MoreVertical } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Plus, Globe, Settings, ExternalLink, MoreVertical, Trash2, Loader2 } from "lucide-react";
 import Header from "@/components/landing/Header";
-
-interface Project {
-  id: string;
-  name: string;
-  status: "draft" | "published";
-  lastEdited: string;
-  url?: string;
-}
-
-const projects: Project[] = [
-  {
-    id: "1",
-    name: "موقع شركة التقنية",
-    status: "published",
-    lastEdited: "منذ ساعتين",
-    url: "tech-company.chat2site.app",
-  },
-  {
-    id: "2",
-    name: "متجر الحرف اليدوية",
-    status: "draft",
-    lastEdited: "منذ يوم",
-  },
-];
+import { useAuth } from "@/hooks/useAuth";
+import { useProjects } from "@/hooks/useProjects";
+import { useToast } from "@/hooks/use-toast";
+import { motion } from "framer-motion";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const Dashboard = () => {
+  const { user, loading: authLoading } = useAuth();
+  const { projects, loading: projectsLoading, deleteProject, refetch } = useProjects();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      navigate("/auth");
+    }
+  }, [authLoading, user, navigate]);
+
+  const handleDeleteProject = async (projectId: string, projectName: string) => {
+    const success = await deleteProject(projectId);
+    if (success) {
+      toast({
+        title: "تم الحذف",
+        description: `تم حذف مشروع "${projectName}" بنجاح`,
+      });
+    } else {
+      toast({
+        title: "خطأ",
+        description: "فشل في حذف المشروع",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diff = now.getTime() - date.getTime();
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const days = Math.floor(hours / 24);
+
+    if (hours < 1) return "منذ دقائق";
+    if (hours < 24) return `منذ ${hours} ساعة`;
+    if (days < 7) return `منذ ${days} يوم`;
+    return date.toLocaleDateString("ar-SA");
+  };
+
+  if (authLoading || projectsLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -49,25 +84,49 @@ const Dashboard = () => {
 
           {/* Projects grid */}
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {projects.map((project) => (
-              <div
+            {projects.map((project, index) => (
+              <motion.div
                 key={project.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
                 className="bg-card rounded-2xl border border-border p-6 shadow-card hover:shadow-elevated transition-shadow group"
               >
                 {/* Project preview placeholder */}
                 <div className="aspect-video bg-muted rounded-xl mb-4 flex items-center justify-center overflow-hidden">
-                  <Globe className="w-12 h-12 text-muted-foreground/30" />
+                  {project.html_content ? (
+                    <iframe
+                      srcDoc={project.html_content}
+                      className="w-full h-full pointer-events-none"
+                      title={project.name}
+                    />
+                  ) : (
+                    <Globe className="w-12 h-12 text-muted-foreground/30" />
+                  )}
                 </div>
 
                 {/* Project info */}
                 <div className="flex items-start justify-between mb-3">
                   <div>
                     <h3 className="font-bold text-foreground mb-1">{project.name}</h3>
-                    <p className="text-sm text-muted-foreground">{project.lastEdited}</p>
+                    <p className="text-sm text-muted-foreground">{formatDate(project.updated_at)}</p>
                   </div>
-                  <button className="p-2 hover:bg-muted rounded-lg transition-colors opacity-0 group-hover:opacity-100">
-                    <MoreVertical className="w-4 h-4 text-muted-foreground" />
-                  </button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button className="p-2 hover:bg-muted rounded-lg transition-colors opacity-0 group-hover:opacity-100">
+                        <MoreVertical className="w-4 h-4 text-muted-foreground" />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem
+                        className="text-destructive"
+                        onClick={() => handleDeleteProject(project.id, project.name)}
+                      >
+                        <Trash2 className="w-4 h-4 ml-2" />
+                        حذف المشروع
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
 
                 {/* Status */}
@@ -80,14 +139,14 @@ const Dashboard = () => {
                   <span className="text-sm text-muted-foreground">
                     {project.status === "published" ? "منشور" : "مسودة"}
                   </span>
-                  {project.url && (
+                  {project.published_url && (
                     <a
-                      href={`https://${project.url}`}
+                      href={`https://${project.published_url}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-sm text-primary hover:underline flex items-center gap-1 mr-auto"
                     >
-                      {project.url}
+                      {project.published_url}
                       <ExternalLink className="w-3 h-3" />
                     </a>
                   )}
@@ -106,7 +165,7 @@ const Dashboard = () => {
                     </Button>
                   </Link>
                 </div>
-              </div>
+              </motion.div>
             ))}
 
             {/* New project card */}
@@ -122,6 +181,20 @@ const Dashboard = () => {
               </p>
             </Link>
           </div>
+
+          {projects.length === 0 && (
+            <div className="text-center py-16">
+              <Globe className="w-16 h-16 text-muted-foreground/30 mx-auto mb-4" />
+              <h3 className="text-xl font-bold text-foreground mb-2">لا توجد مشاريع بعد</h3>
+              <p className="text-muted-foreground mb-6">ابدأ بإنشاء مشروعك الأول الآن</p>
+              <Link to="/app">
+                <Button variant="hero">
+                  <Plus className="w-5 h-5" />
+                  مشروع جديد
+                </Button>
+              </Link>
+            </div>
+          )}
         </div>
       </main>
     </div>
