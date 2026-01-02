@@ -2,10 +2,10 @@ import { X } from "lucide-react";
 import { motion } from "framer-motion";
 
 const problems = [
-  "شرح فكرتك أكثر من مرة",
-  "انتظار، مراجعات، تعديلات لا نهاية لها",
-  "مصطلحات تقنية لا تهمك",
-  "نتيجة لا تشبه ما تخيلته",
+  "التعامل مع مصممين ومطورين",
+  "انتظار أيام وأسابيع للتنفيذ",
+  "ترجمة أفكارك لمصطلحات تقنية",
+  "التعديلات اللانهائية والتكاليف الإضافية",
 ];
 
 const ProblemSection = () => {
@@ -22,10 +22,10 @@ const ProblemSection = () => {
             className="text-center mb-16"
           >
             <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-              إنشاء موقع اليوم يعني...
+              الطريقة التقليدية لإنشاء موقع
             </h2>
             <p className="text-lg text-muted-foreground">
-              تجربة مرهقة لا يجب أن تتكرر
+              وسطاء، انتظار، وتكاليف لا تنتهي
             </p>
           </motion.div>
           
@@ -62,14 +62,14 @@ const ProblemSection = () => {
             transition={{ duration: 0.5, delay: 0.4 }}
             className="text-center p-8 rounded-2xl border-2 border-dashed border-muted"
           >
-            <p className="text-lg text-muted-foreground mb-2">المشكلة ليست في الأدوات</p>
+            <p className="text-lg text-muted-foreground mb-2">الحل ليس أداة أخرى</p>
             <p className="text-2xl font-bold text-foreground">
-              المشكلة في <motion.span
-                className="text-destructive inline-block"
+              الحل هو <motion.span
+                className="hero-gradient bg-clip-text text-transparent inline-block"
                 animate={{ scale: [1, 1.1, 1] }}
                 transition={{ duration: 2, repeat: Infinity }}
               >
-                الوسيط البشري
+                وكيل ذكي يعمل بدلاً عنك
               </motion.span>
             </p>
           </motion.div>

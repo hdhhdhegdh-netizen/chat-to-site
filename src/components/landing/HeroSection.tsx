@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { MessageSquare, Zap } from "lucide-react";
+import { MessageSquare, Zap, Bot, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 
@@ -38,12 +38,12 @@ const HeroSection = () => {
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary mb-8"
           >
             <motion.div
-              animate={{ rotate: [0, 360] }}
-              transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+              animate={{ scale: [1, 1.2, 1] }}
+              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
             >
-              <Zap className="w-4 h-4" />
+              <Bot className="w-4 h-4" />
             </motion.div>
-            <span className="text-sm font-medium">وكيل ذكي • ليس أداة</span>
+            <span className="text-sm font-medium">وكيل ذكي مستقل • ليس أداة بناء</span>
           </motion.div>
           
           {/* Main headline */}
@@ -53,7 +53,7 @@ const HeroSection = () => {
             transition={{ duration: 0.6, delay: 0.1 }}
             className="text-4xl md:text-6xl lg:text-7xl font-bold text-foreground mb-6 leading-tight"
           >
-            ابنِ موقعك عبر
+            وكيلك الرقمي
             <motion.span
               className="block hero-gradient bg-clip-text text-transparent"
               animate={{
@@ -62,7 +62,7 @@ const HeroSection = () => {
               transition={{ duration: 5, repeat: Infinity }}
               style={{ backgroundSize: "200% 200%" }}
             >
-              محادثة واحدة
+              يبني وينشر بدلاً عنك
             </motion.span>
           </motion.h1>
           
@@ -73,9 +73,9 @@ const HeroSection = () => {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="text-xl md:text-2xl text-muted-foreground mb-10 max-w-2xl mx-auto text-balance"
           >
-            تحدث كما تشرح فكرتك لشخص يفهمك.
+            لا تحتاج معرفة تقنية. فقط أخبره بما تريد.
             <br />
-            <span className="text-foreground font-medium">Chat2Site</span> يحوّل كلامك إلى موقع حي، ثم ينشره فورًا.
+            <span className="text-foreground font-medium">Chat2Site</span> يفهم، يصمم، يبني، وينشر موقعك — تلقائياً.
           </motion.p>
           
           {/* CTA Buttons */}
@@ -91,8 +91,8 @@ const HeroSection = () => {
                 whileTap={{ scale: 0.95 }}
               >
                 <Button variant="hero" size="xl">
-                  <MessageSquare className="w-5 h-5" />
-                  ابدأ المحادثة
+                  <Sparkles className="w-5 h-5" />
+                  تحدث مع وكيلك
                 </Button>
               </motion.div>
             </Link>
@@ -118,9 +118,9 @@ const HeroSection = () => {
             <p className="text-sm text-muted-foreground">لا حاجة لبطاقة ائتمان • ابدأ مجانًا</p>
             <div className="flex items-center gap-6 text-muted-foreground">
               {[
+                { label: "وكيل مستقل" },
+                { label: "نشر تلقائي" },
                 { label: "بدون كود" },
-                { label: "نشر فوري" },
-                { label: "عربي بالكامل" },
               ].map((item, index) => (
                 <motion.div
                   key={item.label}

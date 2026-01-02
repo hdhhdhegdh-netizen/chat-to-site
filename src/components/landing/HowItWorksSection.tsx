@@ -1,24 +1,24 @@
-import { MessageCircle, Eye, Globe } from "lucide-react";
+import { MessageCircle, Bot, Globe } from "lucide-react";
 import { motion } from "framer-motion";
 
 const steps = [
   {
     icon: MessageCircle,
     number: "١",
-    title: "تحدث",
-    description: "اشرح مشروعك بلغتك الطبيعية. لا حاجة لمصطلحات تقنية أو خطوات معقدة.",
+    title: "أخبر وكيلك",
+    description: "تحدث بلغتك الطبيعية. اشرح فكرتك كما تشرحها لأي شخص. الوكيل يفهم السياق والنوايا.",
   },
   {
-    icon: Eye,
+    icon: Bot,
     number: "٢",
-    title: "شاهد التنفيذ",
-    description: "الموقع يُبنى ويتغير مباشرة أمامك. كل تعديل تطلبه يظهر فورًا.",
+    title: "الوكيل يعمل",
+    description: "يتخذ قرارات التصميم، يختار الألوان، ينظم المحتوى، ويبني الموقع بالكامل — تلقائياً.",
   },
   {
     icon: Globe,
     number: "٣",
-    title: "انشر",
-    description: "ضغطة واحدة. موقعك على الإنترنت. انتهى.",
+    title: "موقعك منشور",
+    description: "ضغطة واحدة ينشر الوكيل موقعك على الإنترنت. جاهز للمشاركة مع العالم.",
   },
 ];
 
@@ -36,10 +36,10 @@ const HowItWorksSection = () => {
             className="text-center mb-20"
           >
             <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-              كيف يعمل
+              كيف يعمل وكيلك
             </h2>
             <p className="text-lg text-muted-foreground">
-              ثلاث خطوات فقط، بدون تعقيد
+              من الفكرة إلى موقع منشور في دقائق
             </p>
           </motion.div>
           

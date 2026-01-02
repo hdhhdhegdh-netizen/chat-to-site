@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { Bot } from "lucide-react";
 
 const Footer = () => {
   return (
@@ -8,7 +9,7 @@ const Footer = () => {
           {/* Logo */}
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-background flex items-center justify-center">
-              <span className="text-foreground font-bold text-sm">C2S</span>
+              <Bot className="w-4 h-4 text-foreground" />
             </div>
             <span className="font-bold text-xl">Chat2Site</span>
           </div>
@@ -35,7 +36,7 @@ const Footer = () => {
         {/* Positioning statement */}
         <div className="mt-8 pt-8 border-t border-background/10 text-center">
           <p className="text-background/60 text-sm">
-            Chat2Site ليس Website Builder — هو <span className="text-background font-medium">وكيل رقمي</span> ينفذ بدلاً عنك
+            Chat2Site ليس أداة بناء مواقع — هو <span className="text-background font-medium">وكيلك الذكي</span> الذي يبني وينشر بدلاً عنك
           </p>
         </div>
       </div>

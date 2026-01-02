@@ -1,12 +1,13 @@
-import { Check, Code, Settings, FileStack, Layers, Globe } from "lucide-react";
+import { Check, Bot, Zap, Shield, Clock, Users, Award } from "lucide-react";
 import { motion } from "framer-motion";
 
 const features = [
-  { icon: Code, text: "بدون كود", description: "لا حاجة لأي معرفة تقنية" },
-  { icon: Settings, text: "بدون إعدادات", description: "كل شيء جاهز للاستخدام" },
-  { icon: FileStack, text: "بدون ملفات", description: "لا رفع ولا تحميل" },
-  { icon: Layers, text: "بدون تعقيد", description: "واجهة محادثة بسيطة" },
-  { icon: Globe, text: "موقع حقيقي", description: "قابل للنشر والاستخدام" },
+  { icon: Bot, text: "وكيل مستقل", description: "يتخذ القرارات ويعمل بدون إشراف" },
+  { icon: Zap, text: "تنفيذ فوري", description: "من الفكرة إلى موقع في دقائق" },
+  { icon: Shield, text: "نشر آمن", description: "موقعك على سيرفرات موثوقة" },
+  { icon: Clock, text: "متاح دائماً", description: "يعمل على مدار الساعة" },
+  { icon: Users, text: "يفهم العربية", description: "محادثة طبيعية بلغتك" },
+  { icon: Award, text: "نتائج احترافية", description: "مواقع بجودة عالية" },
 ];
 
 const containerVariants = {
@@ -43,17 +44,18 @@ const WhySection = () => {
             className="text-center mb-16"
           >
             <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-              لماذا Chat2Site
+              لماذا وكيل Chat2Site
             </h2>
             <p className="text-lg text-muted-foreground">
-              أنت لا "تبني" — أنت{" "}
+              وكيل ذكي يعمل{" "}
               <motion.span
                 className="font-bold text-primary inline-block"
                 animate={{ scale: [1, 1.1, 1] }}
                 transition={{ duration: 1.5, repeat: Infinity }}
               >
-                توجّه
+                بالنيابة عنك
               </motion.span>
+              {" "}— ليس مجرد أداة
             </p>
           </motion.div>
           
@@ -111,7 +113,7 @@ const WhySection = () => {
                 <Check className="w-5 h-5 text-primary" />
               </motion.div>
               <span className="font-medium text-foreground">
-                موقع كامل من محادثة واحدة
+                موقع كامل ومنشور من محادثة واحدة
               </span>
             </motion.div>
           </motion.div>
