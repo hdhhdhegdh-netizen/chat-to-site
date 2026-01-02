@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Message {
   id: string;
@@ -8,7 +9,10 @@ interface Message {
   status?: 'building' | 'done' | 'error';
 }
 
-const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat-ai`;
+interface AIResponse {
+  message: string;
+  html: string | null;
+}
 
 export const useAIChat = () => {
   const [messages, setMessages] = useState<Message[]>([
@@ -22,6 +26,7 @@ export const useAIChat = () => {
   ]);
   const [isStreaming, setIsStreaming] = useState(false);
   const [projectDescription, setProjectDescription] = useState('');
+  const [generatedHTML, setGeneratedHTML] = useState<string | null>(null);
 
   const sendMessage = useCallback(async (content: string) => {
     if (!content.trim() || isStreaming) return;
@@ -42,7 +47,7 @@ export const useAIChat = () => {
       setProjectDescription(content);
     }
 
-    // Prepare messages for API (excluding system messages)
+    // Prepare messages for API
     const apiMessages = [...messages, userMessage]
       .filter(m => m.type === 'user' || m.type === 'agent')
       .map(m => ({
@@ -50,7 +55,6 @@ export const useAIChat = () => {
         content: m.content,
       }));
 
-    let assistantContent = '';
     const assistantId = (Date.now() + 1).toString();
 
     // Add placeholder for assistant response
@@ -66,77 +70,32 @@ export const useAIChat = () => {
     ]);
 
     try {
-      const response = await fetch(CHAT_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-        },
-        body: JSON.stringify({
+      const { data, error } = await supabase.functions.invoke('chat-ai', {
+        body: {
           messages: apiMessages,
           projectDescription,
-        }),
+        },
       });
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || 'فشل في الاتصال');
+      if (error) {
+        throw new Error(error.message || 'فشل في الاتصال');
       }
 
-      if (!response.body) {
-        throw new Error('لا يوجد استجابة');
-      }
-
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let textBuffer = '';
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        textBuffer += decoder.decode(value, { stream: true });
-
-        // Process SSE lines
-        let newlineIndex: number;
-        while ((newlineIndex = textBuffer.indexOf('\n')) !== -1) {
-          let line = textBuffer.slice(0, newlineIndex);
-          textBuffer = textBuffer.slice(newlineIndex + 1);
-
-          if (line.endsWith('\r')) line = line.slice(0, -1);
-          if (line.startsWith(':') || line.trim() === '') continue;
-          if (!line.startsWith('data: ')) continue;
-
-          const jsonStr = line.slice(6).trim();
-          if (jsonStr === '[DONE]') break;
-
-          try {
-            const parsed = JSON.parse(jsonStr);
-            const deltaContent = parsed.choices?.[0]?.delta?.content;
-            if (deltaContent) {
-              assistantContent += deltaContent;
-              setMessages(prev =>
-                prev.map(m =>
-                  m.id === assistantId
-                    ? { ...m, content: assistantContent, status: 'building' }
-                    : m
-                )
-              );
-            }
-          } catch {
-            // Incomplete JSON, put back and wait
-            textBuffer = line + '\n' + textBuffer;
-            break;
-          }
-        }
-      }
-
-      // Mark as done
+      const response = data as AIResponse;
+      
+      // Update message with response
       setMessages(prev =>
         prev.map(m =>
-          m.id === assistantId ? { ...m, status: 'done' } : m
+          m.id === assistantId
+            ? { ...m, content: response.message || 'تم التنفيذ', status: 'done' }
+            : m
         )
       );
+
+      // Update generated HTML if available
+      if (response.html) {
+        setGeneratedHTML(response.html);
+      }
 
     } catch (error) {
       console.error('Chat error:', error);
@@ -165,6 +124,7 @@ export const useAIChat = () => {
       },
     ]);
     setProjectDescription('');
+    setGeneratedHTML(null);
   }, []);
 
   return {
@@ -172,5 +132,6 @@ export const useAIChat = () => {
     isStreaming,
     sendMessage,
     clearMessages,
+    generatedHTML,
   };
 };

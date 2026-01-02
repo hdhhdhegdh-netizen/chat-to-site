@@ -9,25 +9,36 @@ const SYSTEM_PROMPT = `أنت Chat2Site، وكيل ذكاء اصطناعي مت�
 
 1. فهم طلب المستخدم بدقة
 2. اتخاذ قرارات التصميم والتنفيذ
-3. الرد بإجابات قصيرة ومحددة تصف ما تم تنفيذه
+3. توليد كود HTML/CSS للموقع
 
-قواعد الرد:
+عند الرد، يجب أن يكون ردك بتنسيق JSON بالشكل التالي:
+{
+  "message": "الرسالة للمستخدم باللغة العربية",
+  "html": "كود HTML الكامل للموقع"
+}
+
+قواعد توليد HTML:
+- أنشئ صفحة HTML كاملة مع <!DOCTYPE html>
+- استخدم CSS مضمن في <style> داخل <head>
+- استخدم تصميم عصري وأنيق
+- استخدم خط Tajawal العربي من Google Fonts
+- اجعل التصميم متجاوب (responsive)
+- استخدم ألوان جذابة ومتناسقة
+- أضف تدرجات وظلال للعناصر
+- RTL direction للمحتوى العربي
+
+قواعد الرسالة:
 - استخدم العربية دائمًا
-- ابدأ بـ "تم" أو "جاري" لوصف الإجراء
+- ابدأ بـ "تم" لوصف الإجراء
 - كن موجزًا ومباشرًا
-- لا تسأل، نفّذ
-- اقترح تحسينات إذا كانت مفيدة
 
-أنت لست أداة، أنت وكيل تنفيذي. المستخدم يخبرك ماذا يريد وأنت تنفذ.
-
-أمثلة على ردودك:
-- "تم إنشاء الصفحة الرئيسية مع قسم Hero وزر CTA"
-- "تم تعديل الألوان إلى التدرج الأزرق"
-- "تم إضافة قسم الخدمات مع 4 بطاقات"
-- "جاري بناء نموذج التواصل..."`;
+مثال:
+{
+  "message": "تم إنشاء الصفحة الرئيسية مع قسم Hero وزر CTA",
+  "html": "<!DOCTYPE html><html lang='ar' dir='rtl'>..."
+}`;
 
 serve(async (req) => {
-  // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -43,7 +54,6 @@ serve(async (req) => {
 
     console.log('Processing chat request with', messages?.length || 0, 'messages');
 
-    // Build context with project description if provided
     let systemContent = SYSTEM_PROMPT;
     if (projectDescription) {
       systemContent += `\n\nوصف المشروع الحالي: ${projectDescription}`;
@@ -61,7 +71,6 @@ serve(async (req) => {
           { role: "system", content: systemContent },
           ...messages,
         ],
-        stream: true,
       }),
     });
 
@@ -88,10 +97,32 @@ serve(async (req) => {
       );
     }
 
-    console.log('Streaming response from AI Gateway');
+    const data = await response.json();
+    console.log('AI response received');
     
-    return new Response(response.body, {
-      headers: { ...corsHeaders, 'Content-Type': 'text/event-stream' },
+    const content = data.choices?.[0]?.message?.content || '';
+    
+    // Try to parse as JSON, fallback to plain message
+    let result;
+    try {
+      // Extract JSON from the response (may be wrapped in markdown code blocks)
+      let jsonStr = content;
+      const jsonMatch = content.match(/```json\s*([\s\S]*?)\s*```/);
+      if (jsonMatch) {
+        jsonStr = jsonMatch[1];
+      } else {
+        const plainMatch = content.match(/\{[\s\S]*\}/);
+        if (plainMatch) {
+          jsonStr = plainMatch[0];
+        }
+      }
+      result = JSON.parse(jsonStr);
+    } catch {
+      result = { message: content, html: null };
+    }
+
+    return new Response(JSON.stringify(result), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
   } catch (error) {
