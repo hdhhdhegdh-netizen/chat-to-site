@@ -82,6 +82,7 @@ export type Database = {
           name: string
           published_url: string | null
           status: string
+          subdomain: string | null
           template_id: string | null
           updated_at: string
           user_id: string
@@ -94,6 +95,7 @@ export type Database = {
           name?: string
           published_url?: string | null
           status?: string
+          subdomain?: string | null
           template_id?: string | null
           updated_at?: string
           user_id: string
@@ -106,6 +108,7 @@ export type Database = {
           name?: string
           published_url?: string | null
           status?: string
+          subdomain?: string | null
           template_id?: string | null
           updated_at?: string
           user_id?: string

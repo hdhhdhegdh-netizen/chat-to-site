@@ -11,6 +11,7 @@ import Settings from "./pages/Settings";
 import Account from "./pages/Account";
 import Docs from "./pages/Docs";
 import Auth from "./pages/Auth";
+import ViewSite from "./pages/ViewSite";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,6 +31,7 @@ const App = () => (
           <Route path="/account" element={<Account />} />
           <Route path="/docs" element={<Docs />} />
           <Route path="/auth" element={<Auth />} />
+          <Route path="/site" element={<ViewSite />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
