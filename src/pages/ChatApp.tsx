@@ -1,26 +1,37 @@
 import { useRef, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send, Globe, Menu, X, Loader2, Trash2, Monitor, Smartphone, Tablet, ExternalLink, LayoutTemplate, LogOut, FolderOpen, Bot, Sparkles, Share2 } from "lucide-react";
+import { Send, Globe, Menu, X, Loader2, Trash2, Monitor, Smartphone, Tablet, ExternalLink, LayoutTemplate, LogOut, FolderOpen, Bot, Sparkles, Share2, Check, Copy, Link as LinkIcon } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAIChat } from "@/hooks/useAIChat";
 import { useAuth } from "@/hooks/useAuth";
 import { useProjects } from "@/hooks/useProjects";
+import { usePublish } from "@/hooks/usePublish";
 import { useToast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
-import TemplatesModal, { Template, templates } from "@/components/templates/TemplatesModal";
+import TemplatesModal, { Template } from "@/components/templates/TemplatesModal";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 type PreviewDevice = 'desktop' | 'tablet' | 'mobile';
 
 const ChatApp = () => {
   const { messages, isStreaming, sendMessage, clearMessages, generatedHTML, setGeneratedHTML } = useAIChat();
   const { user, signOut, loading: authLoading } = useAuth();
-  const { currentProject, createProject, updateProject, projects } = useProjects();
+  const { currentProject, createProject, updateProject, projects, setCurrentProject } = useProjects();
+  const { isPublishing, publishSite } = usePublish();
   const [input, setInput] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [publishStatus, setPublishStatus] = useState<"draft" | "building" | "published">("draft");
   const [previewDevice, setPreviewDevice] = useState<PreviewDevice>('desktop');
   const [showTemplates, setShowTemplates] = useState(false);
+  const [showPublishDialog, setShowPublishDialog] = useState(false);
+  const [publishedUrl, setPublishedUrl] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const { toast } = useToast();
@@ -41,14 +52,6 @@ const ChatApp = () => {
     scrollToBottom();
   }, [messages]);
 
-  useEffect(() => {
-    if (isStreaming) {
-      setPublishStatus("building");
-    } else if (generatedHTML) {
-      setPublishStatus("draft");
-    }
-  }, [isStreaming, generatedHTML]);
-
   // Update iframe when HTML changes
   useEffect(() => {
     if (iframeRef.current && generatedHTML) {
@@ -68,6 +71,13 @@ const ChatApp = () => {
     }
   }, [generatedHTML, currentProject, updateProject]);
 
+  // Update published URL when project changes
+  useEffect(() => {
+    if (currentProject?.published_url) {
+      setPublishedUrl(currentProject.published_url);
+    }
+  }, [currentProject]);
+
   const handleSend = async () => {
     if (!input.trim() || isStreaming) return;
     const message = input;
@@ -83,23 +93,25 @@ const ChatApp = () => {
   };
 
   const handlePublish = async () => {
-    if (!generatedHTML) return;
-    
-    setPublishStatus("published");
-    
-    if (currentProject) {
-      const publishedUrl = `${currentProject.id}.chat2site.app`;
-      await updateProject(currentProject.id, { 
-        status: "published",
-        published_url: publishedUrl,
-        html_content: generatedHTML 
-      });
+    if (!generatedHTML || !currentProject) {
+      if (!user) {
+        toast({
+          title: "سجّل الدخول أولاً",
+          description: "يجب تسجيل الدخول لنشر موقعك",
+          variant: "destructive"
+        });
+        navigate("/auth");
+        return;
+      }
+      return;
     }
+
+    const result = await publishSite(currentProject.id, generatedHTML);
     
-    toast({
-      title: "تم النشر بنجاح! 🎉",
-      description: "موقعك الآن متاح على الإنترنت ويمكنك مشاركته",
-    });
+    if (result.success && result.published_url) {
+      setPublishedUrl(result.published_url);
+      setShowPublishDialog(true);
+    }
   };
 
   const handleClearChat = () => {
@@ -146,15 +158,24 @@ const ChatApp = () => {
     navigate("/");
   };
 
-  const handleShare = () => {
-    if (currentProject?.published_url) {
-      navigator.clipboard.writeText(`https://${currentProject.published_url}`);
-      toast({
-        title: "تم نسخ الرابط!",
-        description: "يمكنك الآن مشاركة رابط موقعك",
-      });
-    }
+  const copyToClipboard = async (text: string) => {
+    await navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+    toast({
+      title: "تم النسخ!",
+      description: "تم نسخ الرابط إلى الحافظة",
+    });
   };
+
+  const getPublishStatus = () => {
+    if (isPublishing) return "publishing";
+    if (isStreaming) return "building";
+    if (currentProject?.status === "published") return "published";
+    return "draft";
+  };
+
+  const publishStatus = getPublishStatus();
 
   return (
     <div className="h-screen flex bg-background">
@@ -164,6 +185,68 @@ const ChatApp = () => {
         onClose={() => setShowTemplates(false)}
         onSelectTemplate={handleSelectTemplate}
       />
+
+      {/* Publish Success Dialog */}
+      <Dialog open={showPublishDialog} onOpenChange={setShowPublishDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-xl">
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center"
+              >
+                <Check className="w-6 h-6 text-green-600" />
+              </motion.div>
+              تم نشر موقعك بنجاح!
+            </DialogTitle>
+            <DialogDescription>
+              موقعك الآن متاح للجميع على الإنترنت
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="flex items-center gap-2 p-3 bg-muted rounded-lg">
+              <LinkIcon className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+              <span className="text-sm font-mono flex-1 truncate text-left" dir="ltr">
+                {publishedUrl}
+              </span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => publishedUrl && copyToClipboard(publishedUrl)}
+              >
+                {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+              </Button>
+            </div>
+
+            <div className="flex gap-2">
+              <Button
+                className="flex-1"
+                onClick={() => publishedUrl && window.open(publishedUrl, '_blank')}
+              >
+                <ExternalLink className="w-4 h-4 ml-2" />
+                زيارة الموقع
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  if (publishedUrl) {
+                    const shareText = `تفقد موقعي الجديد: ${publishedUrl}`;
+                    if (navigator.share) {
+                      navigator.share({ title: currentProject?.name, url: publishedUrl, text: shareText });
+                    } else {
+                      copyToClipboard(publishedUrl);
+                    }
+                  }
+                }}
+              >
+                <Share2 className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Sidebar */}
       <AnimatePresence>
@@ -189,28 +272,36 @@ const ChatApp = () => {
               <div className="mb-6 p-4 rounded-xl bg-primary/5 border border-primary/10">
                 <div className="flex items-center gap-3 mb-2">
                   <motion.div
-                    animate={{ scale: [1, 1.1, 1] }}
-                    transition={{ duration: 2, repeat: Infinity }}
+                    animate={{ scale: isStreaming ? [1, 1.1, 1] : 1 }}
+                    transition={{ duration: 1, repeat: isStreaming ? Infinity : 0 }}
                     className="w-10 h-10 rounded-lg hero-gradient flex items-center justify-center"
                   >
-                    <Bot className="w-5 h-5 text-primary-foreground" />
+                    {isStreaming ? (
+                      <Loader2 className="w-5 h-5 text-primary-foreground animate-spin" />
+                    ) : (
+                      <Bot className="w-5 h-5 text-primary-foreground" />
+                    )}
                   </motion.div>
                   <div>
                     <p className="font-bold text-foreground text-sm">وكيلك الذكي</p>
-                    <p className="text-xs text-muted-foreground">جاهز للعمل</p>
+                    <p className="text-xs text-muted-foreground">
+                      {isStreaming ? "يعمل الآن..." : "جاهز للعمل"}
+                    </p>
                   </div>
                 </div>
                 <motion.div
                   className="w-full h-1 rounded-full bg-primary/20 overflow-hidden"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
                 >
-                  <motion.div
-                    className="h-full bg-primary rounded-full"
-                    animate={isStreaming ? { x: ["-100%", "100%"] } : { width: "100%" }}
-                    transition={isStreaming ? { duration: 1, repeat: Infinity } : { duration: 0.5 }}
-                    style={{ width: isStreaming ? "30%" : "100%" }}
-                  />
+                  {isStreaming ? (
+                    <motion.div
+                      className="h-full bg-primary rounded-full"
+                      animate={{ x: ["-100%", "100%"] }}
+                      transition={{ duration: 1, repeat: Infinity }}
+                      style={{ width: "30%" }}
+                    />
+                  ) : (
+                    <div className="h-full bg-primary rounded-full w-full" />
+                  )}
                 </motion.div>
               </div>
 
@@ -220,8 +311,15 @@ const ChatApp = () => {
                 <motion.div 
                   className="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/10 text-primary font-medium"
                 >
-                  <div className="w-2 h-2 rounded-full bg-primary" />
-                  {currentProject?.name || "مشروع جديد"}
+                  <div className={`w-2 h-2 rounded-full ${
+                    publishStatus === "published" ? "bg-green-500" : "bg-primary"
+                  }`} />
+                  <span className="truncate flex-1">{currentProject?.name || "مشروع جديد"}</span>
+                  {publishStatus === "published" && (
+                    <span className="text-xs bg-green-500/10 text-green-600 px-2 py-0.5 rounded-full">
+                      منشور
+                    </span>
+                  )}
                 </motion.div>
               </div>
               
@@ -234,14 +332,21 @@ const ChatApp = () => {
                       <button
                         key={project.id}
                         onClick={() => {
+                          setCurrentProject(project);
                           if (project.html_content) {
                             setGeneratedHTML(project.html_content);
+                          }
+                          if (project.published_url) {
+                            setPublishedUrl(project.published_url);
                           }
                         }}
                         className="w-full text-right flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-muted text-sm text-muted-foreground hover:text-foreground transition-colors"
                       >
-                        <FolderOpen className="w-4 h-4" />
-                        <span className="truncate">{project.name}</span>
+                        <FolderOpen className="w-4 h-4 flex-shrink-0" />
+                        <span className="truncate flex-1">{project.name}</span>
+                        {project.status === "published" && (
+                          <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                        )}
                       </button>
                     ))}
                   </div>
@@ -327,17 +432,19 @@ const ChatApp = () => {
               <motion.div
                 className={`w-2 h-2 rounded-full ${
                   publishStatus === "published"
-                    ? "status-ready"
-                    : publishStatus === "building"
-                    ? "status-building"
-                    : "status-draft"
+                    ? "bg-green-500"
+                    : publishStatus === "building" || publishStatus === "publishing"
+                    ? "bg-yellow-500"
+                    : "bg-gray-400"
                 }`}
-                animate={publishStatus === "building" ? { scale: [1, 1.5, 1] } : {}}
+                animate={(publishStatus === "building" || publishStatus === "publishing") ? { scale: [1, 1.5, 1] } : {}}
                 transition={{ duration: 0.5, repeat: Infinity }}
               />
               <span className="text-sm text-muted-foreground">
                 {publishStatus === "published"
                   ? "منشور ✓"
+                  : publishStatus === "publishing"
+                  ? "جاري النشر..."
                   : publishStatus === "building"
                   ? "الوكيل يعمل..."
                   : "مسودة"}
@@ -346,24 +453,28 @@ const ChatApp = () => {
           </div>
 
           <div className="flex items-center gap-2">
-            {publishStatus === "published" && (
+            {publishStatus === "published" && publishedUrl && (
               <Button
                 variant="outline"
                 size="sm"
-                onClick={handleShare}
+                onClick={() => copyToClipboard(publishedUrl)}
               >
-                <Share2 className="w-4 h-4" />
+                {copied ? <Check className="w-4 h-4" /> : <Share2 className="w-4 h-4" />}
                 مشاركة
               </Button>
             )}
             <Button
               variant={publishStatus === "published" ? "secondary" : "default"}
               size="sm"
-              disabled={publishStatus === "building" || !generatedHTML}
+              disabled={isStreaming || isPublishing || !generatedHTML}
               onClick={handlePublish}
             >
-              <Globe className="w-4 h-4" />
-              {publishStatus === "published" ? "تم النشر" : "انشر موقعك"}
+              {isPublishing ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Globe className="w-4 h-4" />
+              )}
+              {publishStatus === "published" ? "تحديث النشر" : "انشر موقعك"}
             </Button>
           </div>
         </header>
@@ -422,7 +533,7 @@ const ChatApp = () => {
                             animate={{ opacity: 1 }}
                             className="mt-2 flex items-center gap-2 text-xs text-muted-foreground"
                           >
-                            <div className="w-1.5 h-1.5 rounded-full status-ready" />
+                            <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
                             تم التنفيذ
                           </motion.div>
                         )}
@@ -476,9 +587,13 @@ const ChatApp = () => {
                   <motion.span 
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="px-2 py-0.5 rounded-full bg-status-ready/10 text-status-ready text-xs"
+                    className={`px-2 py-0.5 rounded-full text-xs ${
+                      publishStatus === "published"
+                        ? "bg-green-500/10 text-green-600"
+                        : "bg-yellow-500/10 text-yellow-600"
+                    }`}
                   >
-                    جاهز للنشر
+                    {publishStatus === "published" ? "منشور" : "جاهز للنشر"}
                   </motion.span>
                 )}
               </div>
@@ -558,11 +673,11 @@ const ChatApp = () => {
                       <div className="h-8 bg-muted flex items-center px-3 gap-2 border-b border-border">
                         <div className="flex gap-1.5">
                           <div className="w-3 h-3 rounded-full bg-destructive/50" />
-                          <div className="w-3 h-3 rounded-full bg-status-building/50" />
-                          <div className="w-3 h-3 rounded-full bg-status-ready/50" />
+                          <div className="w-3 h-3 rounded-full bg-yellow-500/50" />
+                          <div className="w-3 h-3 rounded-full bg-green-500/50" />
                         </div>
                         <div className="flex-1 bg-background rounded px-3 py-1 text-xs text-muted-foreground text-left" dir="ltr">
-                          {currentProject?.published_url || "mysite.chat2site.app"}
+                          {publishedUrl || "yoursite.chat2site.app"}
                         </div>
                       </div>
                       <iframe

@@ -1,7 +1,7 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate } from "react-router-dom";
-import { Plus, Globe, Settings, ExternalLink, MoreVertical, Trash2, Loader2 } from "lucide-react";
+import { Plus, Globe, Settings, ExternalLink, MoreVertical, Trash2, Loader2, Bot, Copy, Check, Share2 } from "lucide-react";
 import Header from "@/components/landing/Header";
 import { useAuth } from "@/hooks/useAuth";
 import { useProjects } from "@/hooks/useProjects";
@@ -16,9 +16,10 @@ import {
 
 const Dashboard = () => {
   const { user, loading: authLoading } = useAuth();
-  const { projects, loading: projectsLoading, deleteProject, refetch } = useProjects();
+  const { projects, loading: projectsLoading, deleteProject } = useProjects();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -42,6 +43,16 @@ const Dashboard = () => {
     }
   };
 
+  const copyToClipboard = async (projectId: string, url: string) => {
+    await navigator.clipboard.writeText(url);
+    setCopiedId(projectId);
+    setTimeout(() => setCopiedId(null), 2000);
+    toast({
+      title: "تم النسخ!",
+      description: "تم نسخ رابط الموقع إلى الحافظة",
+    });
+  };
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -58,7 +69,20 @@ const Dashboard = () => {
   if (authLoading || projectsLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-center"
+        >
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+            className="w-16 h-16 rounded-2xl hero-gradient mx-auto mb-4 flex items-center justify-center"
+          >
+            <Bot className="w-8 h-8 text-primary-foreground" />
+          </motion.div>
+          <p className="text-muted-foreground">جاري التحميل...</p>
+        </motion.div>
       </div>
     );
   }
@@ -72,7 +96,9 @@ const Dashboard = () => {
           <div className="flex items-center justify-between mb-8">
             <div>
               <h1 className="text-3xl font-bold text-foreground mb-2">مشاريعي</h1>
-              <p className="text-muted-foreground">إدارة ومتابعة جميع مواقعك</p>
+              <p className="text-muted-foreground">
+                {projects.length} مشروع • {projects.filter(p => p.status === "published").length} منشور
+              </p>
             </div>
             <Link to="/app">
               <Button variant="hero" size="lg">
@@ -90,80 +116,113 @@ const Dashboard = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
-                className="bg-card rounded-2xl border border-border p-6 shadow-card hover:shadow-elevated transition-shadow group"
+                className="bg-card rounded-2xl border border-border overflow-hidden shadow-card hover:shadow-elevated transition-shadow group"
               >
-                {/* Project preview placeholder */}
-                <div className="aspect-video bg-muted rounded-xl mb-4 flex items-center justify-center overflow-hidden">
+                {/* Project preview */}
+                <div className="aspect-video bg-muted relative overflow-hidden">
                   {project.html_content ? (
                     <iframe
                       srcDoc={project.html_content}
-                      className="w-full h-full pointer-events-none"
+                      className="w-full h-full pointer-events-none scale-100"
                       title={project.name}
                     />
                   ) : (
-                    <Globe className="w-12 h-12 text-muted-foreground/30" />
+                    <div className="w-full h-full flex items-center justify-center">
+                      <Globe className="w-12 h-12 text-muted-foreground/30" />
+                    </div>
                   )}
+                  
+                  {/* Status badge */}
+                  <div className={`absolute top-3 right-3 px-2 py-1 rounded-full text-xs font-medium ${
+                    project.status === "published" 
+                      ? "bg-green-500/90 text-white" 
+                      : "bg-gray-500/90 text-white"
+                  }`}>
+                    {project.status === "published" ? "منشور ✓" : "مسودة"}
+                  </div>
                 </div>
 
                 {/* Project info */}
-                <div className="flex items-start justify-between mb-3">
-                  <div>
-                    <h3 className="font-bold text-foreground mb-1">{project.name}</h3>
-                    <p className="text-sm text-muted-foreground">{formatDate(project.updated_at)}</p>
+                <div className="p-4">
+                  <div className="flex items-start justify-between mb-3">
+                    <div>
+                      <h3 className="font-bold text-foreground mb-1">{project.name}</h3>
+                      <p className="text-sm text-muted-foreground">{formatDate(project.updated_at)}</p>
+                    </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button className="p-2 hover:bg-muted rounded-lg transition-colors">
+                          <MoreVertical className="w-4 h-4 text-muted-foreground" />
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem
+                          className="text-destructive"
+                          onClick={() => handleDeleteProject(project.id, project.name)}
+                        >
+                          <Trash2 className="w-4 h-4 ml-2" />
+                          حذف المشروع
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <button className="p-2 hover:bg-muted rounded-lg transition-colors opacity-0 group-hover:opacity-100">
-                        <MoreVertical className="w-4 h-4 text-muted-foreground" />
-                      </button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem
-                        className="text-destructive"
-                        onClick={() => handleDeleteProject(project.id, project.name)}
-                      >
-                        <Trash2 className="w-4 h-4 ml-2" />
-                        حذف المشروع
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
 
-                {/* Status */}
-                <div className="flex items-center gap-2 mb-4">
-                  <div
-                    className={`w-2 h-2 rounded-full ${
-                      project.status === "published" ? "status-ready" : "status-draft"
-                    }`}
-                  />
-                  <span className="text-sm text-muted-foreground">
-                    {project.status === "published" ? "منشور" : "مسودة"}
-                  </span>
+                  {/* Published URL */}
                   {project.published_url && (
-                    <a
-                      href={`https://${project.published_url}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-sm text-primary hover:underline flex items-center gap-1 mr-auto"
-                    >
-                      {project.published_url}
-                      <ExternalLink className="w-3 h-3" />
-                    </a>
+                    <div className="flex items-center gap-2 p-2 bg-muted rounded-lg mb-3">
+                      <Globe className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                      <span className="text-xs text-muted-foreground truncate flex-1 text-left" dir="ltr">
+                        {project.published_url.replace('https://', '').substring(0, 40)}...
+                      </span>
+                      <button
+                        onClick={() => copyToClipboard(project.id, project.published_url!)}
+                        className="p-1 hover:bg-background rounded transition-colors"
+                      >
+                        {copiedId === project.id ? (
+                          <Check className="w-3.5 h-3.5 text-green-500" />
+                        ) : (
+                          <Copy className="w-3.5 h-3.5 text-muted-foreground" />
+                        )}
+                      </button>
+                    </div>
                   )}
-                </div>
 
-                {/* Actions */}
-                <div className="flex gap-2">
-                  <Link to="/app" className="flex-1">
-                    <Button variant="default" className="w-full">
-                      تعديل
-                    </Button>
-                  </Link>
-                  <Link to="/settings">
-                    <Button variant="outline" size="icon">
-                      <Settings className="w-4 h-4" />
-                    </Button>
-                  </Link>
+                  {/* Actions */}
+                  <div className="flex gap-2">
+                    <Link to="/app" className="flex-1">
+                      <Button variant="default" className="w-full">
+                        <Bot className="w-4 h-4 ml-2" />
+                        تعديل
+                      </Button>
+                    </Link>
+                    {project.published_url && (
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => window.open(project.published_url!, '_blank')}
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                      </Button>
+                    )}
+                    {project.published_url && (
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => {
+                          if (navigator.share) {
+                            navigator.share({
+                              title: project.name,
+                              url: project.published_url!
+                            });
+                          } else {
+                            copyToClipboard(project.id, project.published_url!);
+                          }
+                        }}
+                      >
+                        <Share2 className="w-4 h-4" />
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </motion.div>
             ))}
@@ -171,29 +230,45 @@ const Dashboard = () => {
             {/* New project card */}
             <Link
               to="/app"
-              className="bg-card rounded-2xl border-2 border-dashed border-border p-6 flex flex-col items-center justify-center min-h-[300px] hover:border-primary hover:bg-primary/5 transition-all group"
+              className="bg-card rounded-2xl border-2 border-dashed border-border p-6 flex flex-col items-center justify-center min-h-[350px] hover:border-primary hover:bg-primary/5 transition-all group"
             >
-              <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mb-4 group-hover:bg-primary/10 transition-colors">
+              <motion.div 
+                className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mb-4 group-hover:bg-primary/10 transition-colors"
+                whileHover={{ scale: 1.1, rotate: 5 }}
+              >
                 <Plus className="w-8 h-8 text-muted-foreground group-hover:text-primary transition-colors" />
-              </div>
-              <p className="font-medium text-muted-foreground group-hover:text-foreground transition-colors">
-                إنشاء مشروع جديد
+              </motion.div>
+              <p className="font-medium text-muted-foreground group-hover:text-foreground transition-colors mb-2">
+                مشروع جديد
+              </p>
+              <p className="text-sm text-muted-foreground text-center">
+                تحدث مع وكيلك الذكي لبناء موقعك
               </p>
             </Link>
           </div>
 
           {projects.length === 0 && (
-            <div className="text-center py-16">
-              <Globe className="w-16 h-16 text-muted-foreground/30 mx-auto mb-4" />
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-center py-16"
+            >
+              <motion.div
+                animate={{ y: [0, -10, 0] }}
+                transition={{ duration: 3, repeat: Infinity }}
+                className="w-20 h-20 rounded-2xl hero-gradient mx-auto mb-6 flex items-center justify-center"
+              >
+                <Bot className="w-10 h-10 text-primary-foreground" />
+              </motion.div>
               <h3 className="text-xl font-bold text-foreground mb-2">لا توجد مشاريع بعد</h3>
-              <p className="text-muted-foreground mb-6">ابدأ بإنشاء مشروعك الأول الآن</p>
+              <p className="text-muted-foreground mb-6">ابدأ بإنشاء مشروعك الأول مع وكيلك الذكي</p>
               <Link to="/app">
-                <Button variant="hero">
+                <Button variant="hero" size="lg">
                   <Plus className="w-5 h-5" />
-                  مشروع جديد
+                  ابدأ مشروعك الأول
                 </Button>
               </Link>
-            </div>
+            </motion.div>
           )}
         </div>
       </main>

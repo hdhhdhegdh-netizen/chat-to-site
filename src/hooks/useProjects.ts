@@ -8,9 +8,10 @@ export interface Project {
   name: string;
   description: string | null;
   html_content: string | null;
-  status: "draft" | "published";
+  status: string;
   published_url: string | null;
   template_id: string | null;
+  subdomain: string | null;
   created_at: string;
   updated_at: string;
 }
