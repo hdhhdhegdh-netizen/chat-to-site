@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import { useState } from "react";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -33,6 +34,7 @@ const Header = () => {
           
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center gap-3">
+            <ThemeToggle />
             <Link to="/dashboard">
               <Button variant="ghost">لوحة التحكم</Button>
             </Link>

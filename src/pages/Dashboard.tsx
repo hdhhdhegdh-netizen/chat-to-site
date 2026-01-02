@@ -1,12 +1,16 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate } from "react-router-dom";
-import { Plus, Globe, Settings, ExternalLink, MoreVertical, Trash2, Loader2, Bot, Copy, Check, Share2 } from "lucide-react";
+import { Plus, Globe, Settings, ExternalLink, MoreVertical, Trash2, Bot, Copy, Check, Share2 } from "lucide-react";
 import Header from "@/components/landing/Header";
 import { useAuth } from "@/hooks/useAuth";
 import { useProjects } from "@/hooks/useProjects";
+import { useAnalytics } from "@/hooks/useAnalytics";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
+import { StatsCards } from "@/components/analytics/StatsCards";
+import { VisitorsChart } from "@/components/analytics/VisitorsChart";
+import { SkeletonPage } from "@/components/ui/skeleton-card";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,6 +21,7 @@ import {
 const Dashboard = () => {
   const { user, loading: authLoading } = useAuth();
   const { projects, loading: projectsLoading, deleteProject } = useProjects();
+  const { data: analyticsData, loading: analyticsLoading } = useAnalytics(user?.id);
   const navigate = useNavigate();
   const { toast } = useToast();
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -67,25 +72,10 @@ const Dashboard = () => {
   };
 
   if (authLoading || projectsLoading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="text-center"
-        >
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-            className="w-16 h-16 rounded-2xl hero-gradient mx-auto mb-4 flex items-center justify-center"
-          >
-            <Bot className="w-8 h-8 text-primary-foreground" />
-          </motion.div>
-          <p className="text-muted-foreground">جاري التحميل...</p>
-        </motion.div>
-      </div>
-    );
+    return <SkeletonPage />;
   }
+
+  const publishedCount = projects.filter(p => p.status === "published").length;
 
   return (
     <div className="min-h-screen bg-background">
@@ -95,17 +85,46 @@ const Dashboard = () => {
           {/* Header */}
           <div className="flex items-center justify-between mb-8">
             <div>
-              <h1 className="text-3xl font-bold text-foreground mb-2">مشاريعي</h1>
+              <h1 className="text-3xl font-bold text-foreground mb-2">لوحة التحكم</h1>
               <p className="text-muted-foreground">
-                {projects.length} مشروع • {projects.filter(p => p.status === "published").length} منشور
+                مرحباً، {user?.email?.split('@')[0] || 'مستخدم'}
               </p>
             </div>
             <Link to="/app">
-              <Button variant="hero" size="lg">
-                <Plus className="w-5 h-5" />
+              <Button className="hero-gradient text-primary-foreground">
+                <Plus className="w-5 h-5 ml-2" />
                 مشروع جديد
               </Button>
             </Link>
+          </div>
+
+          {/* Stats Cards */}
+          <div className="mb-8">
+            <StatsCards
+              totalProjects={projects.length}
+              publishedProjects={publishedCount}
+              totalVisits={analyticsData?.totalVisits || 0}
+              todayVisits={analyticsData?.todayVisits || 0}
+              loading={analyticsLoading}
+            />
+          </div>
+
+          {/* Visitors Chart */}
+          {projects.length > 0 && (
+            <div className="mb-8">
+              <VisitorsChart
+                data={analyticsData?.visitsPerDay || []}
+                loading={analyticsLoading}
+              />
+            </div>
+          )}
+
+          {/* Section Title */}
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-bold text-foreground">مشاريعي</h2>
+            <p className="text-sm text-muted-foreground">
+              {projects.length} مشروع • {publishedCount} منشور
+            </p>
           </div>
 
           {/* Projects grid */}
@@ -156,6 +175,12 @@ const Dashboard = () => {
                         </button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
+                        <DropdownMenuItem asChild>
+                          <Link to={`/settings?project=${project.id}`} className="flex items-center">
+                            <Settings className="w-4 h-4 ml-2" />
+                            الإعدادات
+                          </Link>
+                        </DropdownMenuItem>
                         <DropdownMenuItem
                           className="text-destructive"
                           onClick={() => handleDeleteProject(project.id, project.name)}
@@ -263,8 +288,8 @@ const Dashboard = () => {
               <h3 className="text-xl font-bold text-foreground mb-2">لا توجد مشاريع بعد</h3>
               <p className="text-muted-foreground mb-6">ابدأ بإنشاء مشروعك الأول مع وكيلك الذكي</p>
               <Link to="/app">
-                <Button variant="hero" size="lg">
-                  <Plus className="w-5 h-5" />
+                <Button className="hero-gradient text-primary-foreground">
+                  <Plus className="w-5 h-5 ml-2" />
                   ابدأ مشروعك الأول
                 </Button>
               </Link>

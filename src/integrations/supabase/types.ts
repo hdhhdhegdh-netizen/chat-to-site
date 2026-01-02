@@ -14,6 +14,50 @@ export type Database = {
   }
   public: {
     Tables: {
+      analytics: {
+        Row: {
+          city: string | null
+          country: string | null
+          created_at: string
+          id: string
+          page_path: string
+          project_id: string
+          referrer: string | null
+          user_agent: string | null
+          visitor_ip: string | null
+        }
+        Insert: {
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          id?: string
+          page_path?: string
+          project_id: string
+          referrer?: string | null
+          user_agent?: string | null
+          visitor_ip?: string | null
+        }
+        Update: {
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          id?: string
+          page_path?: string
+          project_id?: string
+          referrer?: string | null
+          user_agent?: string | null
+          visitor_ip?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "analytics_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chat_messages: {
         Row: {
           content: string
@@ -80,12 +124,16 @@ export type Database = {
           html_content: string | null
           id: string
           name: string
+          og_image: string | null
           published_url: string | null
+          seo_description: string | null
+          seo_title: string | null
           status: string
           subdomain: string | null
           template_id: string | null
           updated_at: string
           user_id: string
+          whatsapp_number: string | null
         }
         Insert: {
           created_at?: string
@@ -93,12 +141,16 @@ export type Database = {
           html_content?: string | null
           id?: string
           name?: string
+          og_image?: string | null
           published_url?: string | null
+          seo_description?: string | null
+          seo_title?: string | null
           status?: string
           subdomain?: string | null
           template_id?: string | null
           updated_at?: string
           user_id: string
+          whatsapp_number?: string | null
         }
         Update: {
           created_at?: string
@@ -106,12 +158,16 @@ export type Database = {
           html_content?: string | null
           id?: string
           name?: string
+          og_image?: string | null
           published_url?: string | null
+          seo_description?: string | null
+          seo_title?: string | null
           status?: string
           subdomain?: string | null
           template_id?: string | null
           updated_at?: string
           user_id?: string
+          whatsapp_number?: string | null
         }
         Relationships: []
       }

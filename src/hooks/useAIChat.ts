@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
 interface Message {
@@ -14,7 +14,7 @@ interface AIResponse {
   html: string | null;
 }
 
-export const useAIChat = () => {
+export const useAIChat = (projectId?: string) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -28,8 +28,64 @@ export const useAIChat = () => {
   const [projectDescription, setProjectDescription] = useState('');
   const [generatedHTML, setGeneratedHTML] = useState<string | null>(null);
 
-  const sendMessage = useCallback(async (content: string) => {
+  // Load previous messages if projectId is provided
+  useEffect(() => {
+    if (projectId) {
+      loadMessages(projectId);
+    }
+  }, [projectId]);
+
+  const loadMessages = async (projId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('chat_messages')
+        .select('*')
+        .eq('project_id', projId)
+        .order('created_at', { ascending: true });
+
+      if (error) throw error;
+
+      if (data && data.length > 0) {
+        const loadedMessages: Message[] = data.map(msg => ({
+          id: msg.id,
+          type: msg.role === 'user' ? 'user' : 'agent',
+          content: msg.content,
+          timestamp: new Date(msg.created_at),
+          status: 'done',
+        }));
+        
+        setMessages([
+          {
+            id: '0',
+            type: 'agent',
+            content: 'مرحبًا. أنا Chat2Site، وكيلك الذكي لبناء المواقع. أخبرني عن مشروعك وسأبدأ البناء فورًا.',
+            timestamp: new Date(),
+            status: 'done',
+          },
+          ...loadedMessages,
+        ]);
+      }
+    } catch (error) {
+      console.error('Error loading messages:', error);
+    }
+  };
+
+  const saveMessage = async (projId: string, role: string, content: string) => {
+    try {
+      await supabase.from('chat_messages').insert({
+        project_id: projId,
+        role,
+        content,
+      });
+    } catch (error) {
+      console.error('Error saving message:', error);
+    }
+  };
+
+  const sendMessage = useCallback(async (content: string, currentProjectId?: string) => {
     if (!content.trim() || isStreaming) return;
+
+    const projId = currentProjectId || projectId;
 
     // Add user message
     const userMessage: Message = {
@@ -41,6 +97,11 @@ export const useAIChat = () => {
 
     setMessages(prev => [...prev, userMessage]);
     setIsStreaming(true);
+
+    // Save user message to database
+    if (projId) {
+      saveMessage(projId, 'user', content);
+    }
 
     // Update project description for context
     if (!projectDescription && content.length > 20) {
@@ -74,6 +135,7 @@ export const useAIChat = () => {
         body: {
           messages: apiMessages,
           projectDescription,
+          previousHtml: generatedHTML,
         },
       });
 
@@ -84,13 +146,19 @@ export const useAIChat = () => {
       const response = data as AIResponse;
       
       // Update message with response
+      const responseMessage = response.message || 'تم التنفيذ';
       setMessages(prev =>
         prev.map(m =>
           m.id === assistantId
-            ? { ...m, content: response.message || 'تم التنفيذ', status: 'done' }
+            ? { ...m, content: responseMessage, status: 'done' }
             : m
         )
       );
+
+      // Save assistant message to database
+      if (projId) {
+        saveMessage(projId, 'assistant', responseMessage);
+      }
 
       // Update generated HTML if available
       if (response.html) {
@@ -111,7 +179,7 @@ export const useAIChat = () => {
     } finally {
       setIsStreaming(false);
     }
-  }, [messages, isStreaming, projectDescription]);
+  }, [messages, isStreaming, projectDescription, generatedHTML, projectId]);
 
   const clearMessages = useCallback(() => {
     setMessages([

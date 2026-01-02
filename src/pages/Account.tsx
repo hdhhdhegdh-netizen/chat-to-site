@@ -1,123 +1,334 @@
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Link } from "react-router-dom";
-import { ArrowRight, User, CreditCard, Bell, Shield } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Link, useNavigate } from "react-router-dom";
+import { ArrowRight, User, CreditCard, Bell, Lock, Loader2 } from "lucide-react";
 import Header from "@/components/landing/Header";
+import { useAuth } from "@/hooks/useAuth";
+import { useProfile } from "@/hooks/useProfile";
+import { useSubscription } from "@/hooks/useSubscription";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 const Account = () => {
+  const navigate = useNavigate();
+  const { user, loading: authLoading } = useAuth();
+  const { profile, loading: profileLoading, updateProfile, changePassword } = useProfile(user?.id);
+  const { subscription, currentPlan, loading: subLoading } = useSubscription();
+  
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [changingPassword, setChangingPassword] = useState(false);
+  const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
+
+  // Notification preferences (stored in localStorage for now)
+  const [notifications, setNotifications] = useState({
+    productUpdates: true,
+    billingAlerts: true,
+    tips: false,
+  });
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      navigate("/auth");
+    }
+  }, [authLoading, user, navigate]);
+
+  useEffect(() => {
+    if (profile) {
+      setName(profile.full_name || "");
+      setEmail(profile.email || user?.email || "");
+    }
+  }, [profile, user]);
+
+  const handleSaveProfile = async () => {
+    setSaving(true);
+    await updateProfile({ full_name: name });
+    setSaving(false);
+  };
+
+  const handleChangePassword = async () => {
+    if (newPassword !== confirmPassword) {
+      return;
+    }
+    if (newPassword.length < 6) {
+      return;
+    }
+    
+    setChangingPassword(true);
+    const result = await changePassword(newPassword);
+    setChangingPassword(false);
+    
+    if (!result.error) {
+      setNewPassword("");
+      setConfirmPassword("");
+      setPasswordDialogOpen(false);
+    }
+  };
+
+  const loading = authLoading || profileLoading;
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="pt-20 pb-12">
+          <div className="container px-4 max-w-4xl">
+            <Skeleton className="h-10 w-48 mb-8" />
+            <div className="space-y-6">
+              {[1, 2, 3, 4].map((i) => (
+                <Skeleton key={i} className="h-48 w-full" />
+              ))}
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <main className="pt-24 pb-16">
-        <div className="container px-4">
-          {/* Back link */}
-          <Link
-            to="/dashboard"
-            className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-8 transition-colors"
+      
+      <main className="pt-20 pb-12">
+        <div className="container px-4 max-w-4xl">
+          <Link 
+            to="/dashboard" 
+            className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 transition-colors"
           >
             <ArrowRight className="w-4 h-4" />
             العودة للوحة التحكم
           </Link>
 
-          <div className="max-w-2xl">
-            <h1 className="text-3xl font-bold text-foreground mb-2">حسابي</h1>
-            <p className="text-muted-foreground mb-8">إدارة حسابك واشتراكك</p>
+          <h1 className="text-3xl font-bold text-foreground mb-8">إعدادات الحساب</h1>
 
-            <div className="space-y-8">
-              {/* Profile */}
-              <section className="bg-card rounded-2xl border border-border p-6">
-                <h2 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
-                  <User className="w-5 h-5 text-primary" />
-                  الملف الشخصي
-                </h2>
-                <div className="space-y-4">
-                  <div>
-                    <label className="text-sm font-medium text-foreground mb-2 block">
-                      الاسم
-                    </label>
-                    <Input defaultValue="أحمد محمد" className="text-right" />
+          <div className="space-y-6">
+            {/* Profile Section */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                    <User className="w-5 h-5 text-primary" />
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-foreground mb-2 block">
-                      البريد الإلكتروني
-                    </label>
-                    <Input
-                      defaultValue="ahmed@example.com"
-                      type="email"
-                      className="text-left"
-                      dir="ltr"
+                    <CardTitle>الملف الشخصي</CardTitle>
+                    <CardDescription>معلوماتك الأساسية</CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="name">الاسم</Label>
+                    <Input 
+                      id="name" 
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder="أدخل اسمك"
                     />
                   </div>
-                  <Button>حفظ التغييرات</Button>
-                </div>
-              </section>
-
-              {/* Subscription */}
-              <section className="bg-card rounded-2xl border border-border p-6">
-                <h2 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
-                  <CreditCard className="w-5 h-5 text-primary" />
-                  الاشتراك
-                </h2>
-                <div className="p-4 bg-primary/5 rounded-xl border border-primary/20 mb-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="font-bold text-foreground">الخطة الاحترافية</span>
-                    <span className="px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium">
-                      نشط
-                    </span>
+                  <div className="space-y-2">
+                    <Label htmlFor="email">البريد الإلكتروني</Label>
+                    <Input 
+                      id="email" 
+                      type="email" 
+                      value={email}
+                      disabled
+                      className="bg-muted"
+                    />
                   </div>
-                  <p className="text-sm text-muted-foreground mb-2">
-                    49 ر.س / شهريًا • يتجدد في 15 فبراير 2025
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    3 من 5 مواقع مستخدمة
-                  </p>
                 </div>
-                <div className="flex gap-3">
-                  <Link to="/pricing">
-                    <Button variant="outline">تغيير الخطة</Button>
-                  </Link>
-                  <Button variant="ghost" className="text-destructive hover:text-destructive">
-                    إلغاء الاشتراك
-                  </Button>
-                </div>
-              </section>
+                <Button onClick={handleSaveProfile} disabled={saving}>
+                  {saving && <Loader2 className="w-4 h-4 ml-2 animate-spin" />}
+                  حفظ التغييرات
+                </Button>
+              </CardContent>
+            </Card>
 
-              {/* Notifications */}
-              <section className="bg-card rounded-2xl border border-border p-6">
-                <h2 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
-                  <Bell className="w-5 h-5 text-primary" />
-                  الإشعارات
-                </h2>
-                <div className="space-y-3">
-                  <label className="flex items-center gap-3 p-3 bg-muted rounded-lg cursor-pointer">
-                    <input type="checkbox" defaultChecked className="rounded" />
-                    <span className="text-foreground">تحديثات المنتج والميزات الجديدة</span>
-                  </label>
-                  <label className="flex items-center gap-3 p-3 bg-muted rounded-lg cursor-pointer">
-                    <input type="checkbox" defaultChecked className="rounded" />
-                    <span className="text-foreground">تنبيهات الفوترة والدفع</span>
-                  </label>
-                  <label className="flex items-center gap-3 p-3 bg-muted rounded-lg cursor-pointer">
-                    <input type="checkbox" className="rounded" />
-                    <span className="text-foreground">نصائح واقتراحات</span>
-                  </label>
+            {/* Subscription Section */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                    <CreditCard className="w-5 h-5 text-primary" />
+                  </div>
+                  <div>
+                    <CardTitle>الاشتراك</CardTitle>
+                    <CardDescription>إدارة خطة اشتراكك</CardDescription>
+                  </div>
                 </div>
-              </section>
+              </CardHeader>
+              <CardContent>
+                {subLoading ? (
+                  <div className="space-y-4">
+                    <Skeleton className="h-6 w-32" />
+                    <Skeleton className="h-4 w-48" />
+                  </div>
+                ) : subscription ? (
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between p-4 rounded-lg bg-muted">
+                      <div>
+                        <p className="font-medium">
+                          الخطة الحالية: <span className="text-primary">{currentPlan?.name_ar || 'مجانية'}</span>
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          الحالة: {subscription.status === 'active' ? 'نشط' : 'غير نشط'}
+                        </p>
+                        {subscription.current_period_end && (
+                          <p className="text-sm text-muted-foreground">
+                            التجديد: {new Date(subscription.current_period_end).toLocaleDateString('ar-SA')}
+                          </p>
+                        )}
+                      </div>
+                      <Link to="/pricing">
+                        <Button variant="outline">تغيير الخطة</Button>
+                      </Link>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-6">
+                    <p className="text-muted-foreground mb-4">لا يوجد اشتراك حالي</p>
+                    <Link to="/pricing">
+                      <Button>اشترك الآن</Button>
+                    </Link>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
 
-              {/* Security */}
-              <section className="bg-card rounded-2xl border border-border p-6">
-                <h2 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
-                  <Shield className="w-5 h-5 text-primary" />
-                  الأمان
-                </h2>
-                <div className="space-y-4">
-                  <Button variant="outline">تغيير كلمة المرور</Button>
-                  <p className="text-sm text-muted-foreground">
-                    آخر تسجيل دخول: اليوم، 10:30 صباحًا من الرياض
-                  </p>
+            {/* Notifications Section */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                    <Bell className="w-5 h-5 text-primary" />
+                  </div>
+                  <div>
+                    <CardTitle>الإشعارات</CardTitle>
+                    <CardDescription>تفضيلات البريد الإلكتروني</CardDescription>
+                  </div>
                 </div>
-              </section>
-            </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="productUpdates" className="cursor-pointer">تحديثات المنتج</Label>
+                  <Checkbox 
+                    id="productUpdates" 
+                    checked={notifications.productUpdates}
+                    onCheckedChange={(checked) => 
+                      setNotifications(prev => ({ ...prev, productUpdates: !!checked }))
+                    }
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="billingAlerts" className="cursor-pointer">تنبيهات الفواتير</Label>
+                  <Checkbox 
+                    id="billingAlerts" 
+                    checked={notifications.billingAlerts}
+                    onCheckedChange={(checked) => 
+                      setNotifications(prev => ({ ...prev, billingAlerts: !!checked }))
+                    }
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="tips" className="cursor-pointer">نصائح ومقترحات</Label>
+                  <Checkbox 
+                    id="tips" 
+                    checked={notifications.tips}
+                    onCheckedChange={(checked) => 
+                      setNotifications(prev => ({ ...prev, tips: !!checked }))
+                    }
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Security Section */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                    <Lock className="w-5 h-5 text-primary" />
+                  </div>
+                  <div>
+                    <CardTitle>الأمان</CardTitle>
+                    <CardDescription>إدارة كلمة المرور</CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium">كلمة المرور</p>
+                    <p className="text-sm text-muted-foreground">
+                      آخر تحديث: غير معروف
+                    </p>
+                  </div>
+                  <Dialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button variant="outline">تغيير كلمة المرور</Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>تغيير كلمة المرور</DialogTitle>
+                        <DialogDescription>
+                          أدخل كلمة المرور الجديدة
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="newPassword">كلمة المرور الجديدة</Label>
+                          <Input
+                            id="newPassword"
+                            type="password"
+                            value={newPassword}
+                            onChange={(e) => setNewPassword(e.target.value)}
+                            placeholder="أدخل كلمة المرور الجديدة"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="confirmPassword">تأكيد كلمة المرور</Label>
+                          <Input
+                            id="confirmPassword"
+                            type="password"
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            placeholder="أعد إدخال كلمة المرور"
+                          />
+                        </div>
+                        {newPassword && confirmPassword && newPassword !== confirmPassword && (
+                          <p className="text-sm text-destructive">كلمات المرور غير متطابقة</p>
+                        )}
+                        {newPassword && newPassword.length < 6 && (
+                          <p className="text-sm text-destructive">كلمة المرور قصيرة جداً (6 أحرف على الأقل)</p>
+                        )}
+                        <Button 
+                          onClick={handleChangePassword}
+                          disabled={changingPassword || newPassword !== confirmPassword || newPassword.length < 6}
+                          className="w-full"
+                        >
+                          {changingPassword && <Loader2 className="w-4 h-4 ml-2 animate-spin" />}
+                          تغيير كلمة المرور
+                        </Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </main>
