@@ -115,6 +115,116 @@ export type Database = {
         }
         Relationships: []
       }
+      subscription_plans: {
+        Row: {
+          created_at: string
+          currency: string
+          features: Json
+          has_analytics: boolean
+          has_custom_domain: boolean
+          has_priority_support: boolean
+          has_remove_branding: boolean
+          id: string
+          is_active: boolean
+          lemonsqueezy_product_id: string | null
+          max_chats_per_day: number
+          max_projects: number
+          name: string
+          name_ar: string
+          paddle_product_id: string | null
+          period: string
+          price: number
+        }
+        Insert: {
+          created_at?: string
+          currency?: string
+          features?: Json
+          has_analytics?: boolean
+          has_custom_domain?: boolean
+          has_priority_support?: boolean
+          has_remove_branding?: boolean
+          id?: string
+          is_active?: boolean
+          lemonsqueezy_product_id?: string | null
+          max_chats_per_day?: number
+          max_projects?: number
+          name: string
+          name_ar: string
+          paddle_product_id?: string | null
+          period?: string
+          price?: number
+        }
+        Update: {
+          created_at?: string
+          currency?: string
+          features?: Json
+          has_analytics?: boolean
+          has_custom_domain?: boolean
+          has_priority_support?: boolean
+          has_remove_branding?: boolean
+          id?: string
+          is_active?: boolean
+          lemonsqueezy_product_id?: string | null
+          max_chats_per_day?: number
+          max_projects?: number
+          name?: string
+          name_ar?: string
+          paddle_product_id?: string | null
+          period?: string
+          price?: number
+        }
+        Relationships: []
+      }
+      subscriptions: {
+        Row: {
+          cancelled_at: string | null
+          created_at: string
+          current_period_end: string | null
+          current_period_start: string
+          external_subscription_id: string | null
+          id: string
+          payment_provider: string | null
+          plan_id: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cancelled_at?: string | null
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string
+          external_subscription_id?: string | null
+          id?: string
+          payment_provider?: string | null
+          plan_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cancelled_at?: string | null
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string
+          external_subscription_id?: string | null
+          id?: string
+          payment_provider?: string | null
+          plan_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
