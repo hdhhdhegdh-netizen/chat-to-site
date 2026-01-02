@@ -1,72 +1,144 @@
 import { Button } from "@/components/ui/button";
 import { MessageSquare, Zap } from "lucide-react";
 import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
 
 const HeroSection = () => {
   return (
     <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden subtle-gradient">
-      {/* Background decoration */}
+      {/* Animated background decoration */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-accent/5 rounded-full blur-3xl" />
+        <motion.div
+          className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl"
+          animate={{
+            x: [0, 30, 0],
+            y: [0, -20, 0],
+            scale: [1, 1.1, 1],
+          }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div
+          className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-accent/5 rounded-full blur-3xl"
+          animate={{
+            x: [0, -30, 0],
+            y: [0, 20, 0],
+            scale: [1.1, 1, 1.1],
+          }}
+          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+        />
       </div>
       
       <div className="container relative z-10 px-4 py-20">
         <div className="max-w-4xl mx-auto text-center">
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary mb-8 animate-fade-in">
-            <Zap className="w-4 h-4" />
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary mb-8"
+          >
+            <motion.div
+              animate={{ rotate: [0, 360] }}
+              transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+            >
+              <Zap className="w-4 h-4" />
+            </motion.div>
             <span className="text-sm font-medium">وكيل ذكي • ليس أداة</span>
-          </div>
+          </motion.div>
           
           {/* Main headline */}
-          <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-foreground mb-6 animate-slide-up leading-tight">
+          <motion.h1
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="text-4xl md:text-6xl lg:text-7xl font-bold text-foreground mb-6 leading-tight"
+          >
             ابنِ موقعك عبر
-            <span className="block hero-gradient bg-clip-text text-transparent">
+            <motion.span
+              className="block hero-gradient bg-clip-text text-transparent"
+              animate={{
+                backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
+              }}
+              transition={{ duration: 5, repeat: Infinity }}
+              style={{ backgroundSize: "200% 200%" }}
+            >
               محادثة واحدة
-            </span>
-          </h1>
+            </motion.span>
+          </motion.h1>
           
           {/* Subheadline */}
-          <p className="text-xl md:text-2xl text-muted-foreground mb-10 max-w-2xl mx-auto animate-slide-up text-balance" style={{ animationDelay: '0.1s' }}>
+          <motion.p
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="text-xl md:text-2xl text-muted-foreground mb-10 max-w-2xl mx-auto text-balance"
+          >
             تحدث كما تشرح فكرتك لشخص يفهمك.
             <br />
             <span className="text-foreground font-medium">Chat2Site</span> يحوّل كلامك إلى موقع حي، ثم ينشره فورًا.
-          </p>
+          </motion.p>
           
           {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-slide-up" style={{ animationDelay: '0.2s' }}>
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+            className="flex flex-col sm:flex-row items-center justify-center gap-4"
+          >
             <Link to="/app">
-              <Button variant="hero" size="xl">
-                <MessageSquare className="w-5 h-5" />
-                ابدأ المحادثة
-              </Button>
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Button variant="hero" size="xl">
+                  <MessageSquare className="w-5 h-5" />
+                  ابدأ المحادثة
+                </Button>
+              </motion.div>
             </Link>
             <Link to="/pricing">
-              <Button variant="heroOutline" size="lg">
-                تعرف على الأسعار
-              </Button>
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Button variant="heroOutline" size="lg">
+                  تعرف على الأسعار
+                </Button>
+              </motion.div>
             </Link>
-          </div>
+          </motion.div>
           
           {/* Trust indicators */}
-          <div className="mt-16 flex flex-col items-center gap-4 animate-fade-in" style={{ animationDelay: '0.4s' }}>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.6, delay: 0.5 }}
+            className="mt-16 flex flex-col items-center gap-4"
+          >
             <p className="text-sm text-muted-foreground">لا حاجة لبطاقة ائتمان • ابدأ مجانًا</p>
             <div className="flex items-center gap-6 text-muted-foreground">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full status-ready" />
-                <span className="text-sm">بدون كود</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full status-ready" />
-                <span className="text-sm">نشر فوري</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full status-ready" />
-                <span className="text-sm">عربي بالكامل</span>
-              </div>
+              {[
+                { label: "بدون كود" },
+                { label: "نشر فوري" },
+                { label: "عربي بالكامل" },
+              ].map((item, index) => (
+                <motion.div
+                  key={item.label}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.6 + index * 0.1 }}
+                  className="flex items-center gap-2"
+                >
+                  <motion.div
+                    className="w-2 h-2 rounded-full status-ready"
+                    animate={{ scale: [1, 1.2, 1] }}
+                    transition={{ duration: 2, delay: index * 0.3, repeat: Infinity }}
+                  />
+                  <span className="text-sm">{item.label}</span>
+                </motion.div>
+              ))}
             </div>
-          </div>
+          </motion.div>
         </div>
       </div>
     </section>
