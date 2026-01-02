@@ -133,5 +133,6 @@ export const useAIChat = () => {
     sendMessage,
     clearMessages,
     generatedHTML,
+    setGeneratedHTML,
   };
 };
