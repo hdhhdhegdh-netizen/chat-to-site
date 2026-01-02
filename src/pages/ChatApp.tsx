@@ -1,7 +1,7 @@
 import { useRef, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send, Globe, Menu, X, Loader2, Trash2, Monitor, Smartphone, Tablet, ExternalLink, Code, Download, LayoutTemplate, LogOut, FolderOpen } from "lucide-react";
+import { Send, Globe, Menu, X, Loader2, Trash2, Monitor, Smartphone, Tablet, ExternalLink, LayoutTemplate, LogOut, FolderOpen, Bot, Sparkles, Share2 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAIChat } from "@/hooks/useAIChat";
 import { useAuth } from "@/hooks/useAuth";
@@ -20,7 +20,6 @@ const ChatApp = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [publishStatus, setPublishStatus] = useState<"draft" | "building" | "published">("draft");
   const [previewDevice, setPreviewDevice] = useState<PreviewDevice>('desktop');
-  const [showCode, setShowCode] = useState(false);
   const [showTemplates, setShowTemplates] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -98,8 +97,8 @@ const ChatApp = () => {
     }
     
     toast({
-      title: "تم النشر!",
-      description: "موقعك الآن متاح على الإنترنت",
+      title: "تم النشر بنجاح! 🎉",
+      description: "موقعك الآن متاح على الإنترنت ويمكنك مشاركته",
     });
   };
 
@@ -107,7 +106,7 @@ const ChatApp = () => {
     clearMessages();
     toast({
       title: "تم مسح المحادثة",
-      description: "يمكنك البدء من جديد",
+      description: "يمكنك البدء من جديد مع وكيلك",
     });
   };
 
@@ -124,25 +123,6 @@ const ChatApp = () => {
     
     // Send the template prompt
     await sendMessage(template.prompt);
-  };
-
-  const handleDownloadHTML = () => {
-    if (!generatedHTML) return;
-    
-    const blob = new Blob([generatedHTML], { type: 'text/html;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${currentProject?.name || 'my-site'}.html`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    
-    toast({
-      title: "تم التحميل!",
-      description: "تم تحميل ملف HTML بنجاح",
-    });
   };
 
   const getPreviewWidth = () => {
@@ -166,6 +146,16 @@ const ChatApp = () => {
     navigate("/");
   };
 
+  const handleShare = () => {
+    if (currentProject?.published_url) {
+      navigator.clipboard.writeText(`https://${currentProject.published_url}`);
+      toast({
+        title: "تم نسخ الرابط!",
+        description: "يمكنك الآن مشاركة رابط موقعك",
+      });
+    }
+  };
+
   return (
     <div className="h-screen flex bg-background">
       {/* Templates Modal */}
@@ -180,7 +170,7 @@ const ChatApp = () => {
         {sidebarOpen && (
           <motion.aside
             initial={{ width: 0, opacity: 0 }}
-            animate={{ width: 256, opacity: 1 }}
+            animate={{ width: 280, opacity: 1 }}
             exit={{ width: 0, opacity: 0 }}
             transition={{ duration: 0.2 }}
             className="bg-card border-l border-border overflow-hidden flex flex-col"
@@ -188,19 +178,47 @@ const ChatApp = () => {
             <div className="p-4 border-b border-border">
               <Link to="/" className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-lg hero-gradient flex items-center justify-center">
-                  <span className="text-primary-foreground font-bold text-sm">C2S</span>
+                  <Bot className="w-4 h-4 text-primary-foreground" />
                 </div>
                 <span className="font-bold text-lg text-foreground">Chat2Site</span>
               </Link>
             </div>
 
             <nav className="flex-1 p-4 overflow-y-auto">
+              {/* Agent Status */}
+              <div className="mb-6 p-4 rounded-xl bg-primary/5 border border-primary/10">
+                <div className="flex items-center gap-3 mb-2">
+                  <motion.div
+                    animate={{ scale: [1, 1.1, 1] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                    className="w-10 h-10 rounded-lg hero-gradient flex items-center justify-center"
+                  >
+                    <Bot className="w-5 h-5 text-primary-foreground" />
+                  </motion.div>
+                  <div>
+                    <p className="font-bold text-foreground text-sm">وكيلك الذكي</p>
+                    <p className="text-xs text-muted-foreground">جاهز للعمل</p>
+                  </div>
+                </div>
+                <motion.div
+                  className="w-full h-1 rounded-full bg-primary/20 overflow-hidden"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                >
+                  <motion.div
+                    className="h-full bg-primary rounded-full"
+                    animate={isStreaming ? { x: ["-100%", "100%"] } : { width: "100%" }}
+                    transition={isStreaming ? { duration: 1, repeat: Infinity } : { duration: 0.5 }}
+                    style={{ width: isStreaming ? "30%" : "100%" }}
+                  />
+                </motion.div>
+              </div>
+
               {/* Current project */}
               <div className="space-y-2 mb-4">
+                <p className="text-xs text-muted-foreground px-3">المشروع الحالي</p>
                 <motion.div 
                   className="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/10 text-primary font-medium"
-                  animate={{ scale: [1, 1.02, 1] }}
-                  transition={{ duration: 2, repeat: Infinity }}
                 >
                   <div className="w-2 h-2 rounded-full bg-primary" />
                   {currentProject?.name || "مشروع جديد"}
@@ -248,7 +266,7 @@ const ChatApp = () => {
                   className="w-full justify-start text-muted-foreground hover:text-destructive"
                 >
                   <Trash2 className="w-4 h-4 ml-2" />
-                  مسح المحادثة
+                  محادثة جديدة
                 </Button>
               </div>
             </nav>
@@ -319,23 +337,23 @@ const ChatApp = () => {
               />
               <span className="text-sm text-muted-foreground">
                 {publishStatus === "published"
-                  ? "منشور"
+                  ? "منشور ✓"
                   : publishStatus === "building"
-                  ? "جاري البناء..."
+                  ? "الوكيل يعمل..."
                   : "مسودة"}
               </span>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
-            {generatedHTML && (
+            {publishStatus === "published" && (
               <Button
                 variant="outline"
                 size="sm"
-                onClick={handleDownloadHTML}
+                onClick={handleShare}
               >
-                <Download className="w-4 h-4" />
-                تحميل HTML
+                <Share2 className="w-4 h-4" />
+                مشاركة
               </Button>
             )}
             <Button
@@ -345,7 +363,7 @@ const ChatApp = () => {
               onClick={handlePublish}
             >
               <Globe className="w-4 h-4" />
-              {publishStatus === "published" ? "تم النشر" : "انشر الآن"}
+              {publishStatus === "published" ? "تم النشر" : "انشر موقعك"}
             </Button>
           </div>
         </header>
@@ -372,7 +390,7 @@ const ChatApp = () => {
                           {message.status === "building" ? (
                             <Loader2 className="w-4 h-4 text-primary-foreground animate-spin" />
                           ) : (
-                            <span className="text-primary-foreground font-bold text-xs">AI</span>
+                            <Bot className="w-4 h-4 text-primary-foreground" />
                           )}
                         </div>
                       )}
@@ -430,7 +448,7 @@ const ChatApp = () => {
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyPress={handleKeyPress}
-                  placeholder="مثال: موقع لمكتب محاماة في الرياض"
+                  placeholder="أخبر وكيلك بما تريد... مثال: أريد موقع لمكتب محاماة"
                   className="flex-1 text-right text-sm"
                   disabled={isStreaming}
                 />
@@ -443,7 +461,7 @@ const ChatApp = () => {
                 </Button>
               </div>
               <p className="mt-2 text-xs text-muted-foreground text-center">
-                مدعوم بـ Lovable AI
+                الوكيل يبني موقعك ويمكنك نشره مباشرة
               </p>
             </div>
           </div>
@@ -453,14 +471,14 @@ const ChatApp = () => {
             {/* Preview toolbar */}
             <div className="p-2 border-b border-border bg-card flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-foreground">المعاينة</span>
+                <span className="text-sm font-medium text-foreground">موقعك</span>
                 {generatedHTML && (
                   <motion.span 
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
                     className="px-2 py-0.5 rounded-full bg-status-ready/10 text-status-ready text-xs"
                   >
-                    جاهز
+                    جاهز للنشر
                   </motion.span>
                 )}
               </div>
@@ -488,24 +506,17 @@ const ChatApp = () => {
                   </button>
                 </div>
 
-                <div className="w-px h-6 bg-border mx-1" />
-
-                <button
-                  onClick={() => setShowCode(!showCode)}
-                  className={`p-1.5 rounded hover:bg-muted ${showCode ? 'bg-primary/10 text-primary' : 'text-muted-foreground'}`}
-                  title="عرض الكود"
-                >
-                  <Code className="w-4 h-4" />
-                </button>
-
                 {generatedHTML && (
-                  <button
-                    onClick={openPreviewInNewTab}
-                    className="p-1.5 rounded hover:bg-muted text-muted-foreground"
-                    title="فتح في نافذة جديدة"
-                  >
-                    <ExternalLink className="w-4 h-4" />
-                  </button>
+                  <>
+                    <div className="w-px h-6 bg-border mx-1" />
+                    <button
+                      onClick={openPreviewInNewTab}
+                      className="p-1.5 rounded hover:bg-muted text-muted-foreground"
+                      title="فتح في نافذة جديدة"
+                    >
+                      <ExternalLink className="w-4 h-4" />
+                    </button>
+                  </>
                 )}
               </div>
             </div>
@@ -513,19 +524,7 @@ const ChatApp = () => {
             {/* Preview content */}
             <div className="flex-1 overflow-auto p-4 flex justify-center">
               <AnimatePresence mode="wait">
-                {showCode && generatedHTML ? (
-                  <motion.div
-                    key="code"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="w-full h-full overflow-auto bg-foreground rounded-lg p-4"
-                  >
-                    <pre className="text-xs text-background/90 whitespace-pre-wrap font-mono" dir="ltr">
-                      {generatedHTML}
-                    </pre>
-                  </motion.div>
-                ) : isStreaming ? (
+                {isStreaming ? (
                   <motion.div
                     key="loading"
                     initial={{ opacity: 0, scale: 0.9 }}
@@ -541,10 +540,10 @@ const ChatApp = () => {
                       }}
                       transition={{ duration: 2, repeat: Infinity }}
                     >
-                      <Loader2 className="w-12 h-12 text-primary-foreground animate-spin" />
+                      <Bot className="w-12 h-12 text-primary-foreground" />
                     </motion.div>
-                    <p className="text-foreground font-medium mb-2">جاري بناء موقعك...</p>
-                    <p className="text-muted-foreground text-sm">يتم تنفيذ طلبك الآن</p>
+                    <p className="text-foreground font-medium mb-2">الوكيل يبني موقعك...</p>
+                    <p className="text-muted-foreground text-sm">يتم تنفيذ طلبك الآن تلقائياً</p>
                   </motion.div>
                 ) : generatedHTML ? (
                   <motion.div
@@ -587,11 +586,11 @@ const ChatApp = () => {
                       animate={{ y: [0, -5, 0] }}
                       transition={{ duration: 3, repeat: Infinity }}
                     >
-                      <Globe className="w-12 h-12 text-muted-foreground/30" />
+                      <Sparkles className="w-12 h-12 text-muted-foreground/30" />
                     </motion.div>
-                    <p className="text-foreground font-medium mb-2">ابدأ المحادثة</p>
+                    <p className="text-foreground font-medium mb-2">أخبر وكيلك بما تريد</p>
                     <p className="text-muted-foreground text-sm mb-4">
-                      سيظهر موقعك هنا فور بنائه
+                      سيقوم الوكيل ببناء موقعك هنا تلقائياً
                     </p>
                     <Button
                       variant="outline"
@@ -599,7 +598,7 @@ const ChatApp = () => {
                       onClick={() => setShowTemplates(true)}
                     >
                       <LayoutTemplate className="w-4 h-4 ml-2" />
-                      اختر قالبًا جاهزًا
+                      أو اختر قالبًا جاهزًا
                     </Button>
                   </motion.div>
                 )}

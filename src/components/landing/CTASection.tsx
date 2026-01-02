@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { MessageSquare, ArrowLeft, Sparkles } from "lucide-react";
+import { Bot, ArrowLeft, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 
@@ -54,7 +54,7 @@ const CTASection = () => {
             transition={{ duration: 0.5, type: "spring" }}
             className="inline-flex items-center justify-center w-16 h-16 rounded-2xl hero-gradient mb-8"
           >
-            <Sparkles className="w-8 h-8 text-primary-foreground" />
+            <Bot className="w-8 h-8 text-primary-foreground" />
           </motion.div>
           
           <motion.h2
@@ -64,7 +64,7 @@ const CTASection = () => {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="text-3xl md:text-5xl font-bold text-foreground mb-6"
           >
-            جاهز لبناء موقعك؟
+            جاهز لتفعيل وكيلك؟
           </motion.h2>
           
           <motion.p
@@ -74,7 +74,7 @@ const CTASection = () => {
             transition={{ duration: 0.5, delay: 0.3 }}
             className="text-xl text-muted-foreground mb-10"
           >
-            لا حاجة لخبرة تقنية. تحدث فقط.
+            أخبره بما تريد واتركه يعمل. موقعك سيكون جاهزاً ومنشوراً.
           </motion.p>
           
           <motion.div
@@ -90,8 +90,8 @@ const CTASection = () => {
                 whileTap={{ scale: 0.95 }}
               >
                 <Button variant="hero" size="xl" className="group">
-                  <MessageSquare className="w-5 h-5" />
-                  ابدأ المحادثة الآن
+                  <Sparkles className="w-5 h-5" />
+                  ابدأ مع وكيلك الآن
                   <motion.div
                     animate={{ x: [0, -5, 0] }}
                     transition={{ duration: 1, repeat: Infinity }}

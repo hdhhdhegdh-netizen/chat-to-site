@@ -1,12 +1,18 @@
-import { Brain, Paintbrush, Rocket, MessageSquare, RefreshCw } from "lucide-react";
+import { Brain, Target, Zap, MessageSquare, Globe, Palette, Shield, Clock } from "lucide-react";
 import { motion } from "framer-motion";
 
 const capabilities = [
-  { icon: Brain, text: "يفهم نشاطك" },
-  { icon: Paintbrush, text: "يتخذ قرارات التصميم" },
-  { icon: Rocket, text: "ينفّذ مباشرة" },
-  { icon: MessageSquare, text: "يعدّل من الحوار" },
-  { icon: RefreshCw, text: "ينشر فورًا" },
+  { icon: Brain, text: "يفهم احتياجاتك", description: "من خلال المحادثة الطبيعية" },
+  { icon: Palette, text: "يصمم تلقائياً", description: "قرارات تصميم ذكية" },
+  { icon: Zap, text: "ينفذ فوراً", description: "بناء في الوقت الحقيقي" },
+  { icon: Globe, text: "ينشر مباشرة", description: "موقعك على الإنترنت" },
+];
+
+const agentFeatures = [
+  { icon: Target, text: "يتخذ القرارات بنفسه" },
+  { icon: Clock, text: "يعمل على مدار الساعة" },
+  { icon: Shield, text: "آمن وموثوق" },
+  { icon: MessageSquare, text: "يستجيب للتعديلات" },
 ];
 
 const containerVariants = {
@@ -28,26 +34,26 @@ const SolutionSection = () => {
   return (
     <section className="py-24 subtle-gradient overflow-hidden">
       <div className="container px-4">
-        <div className="max-w-4xl mx-auto text-center">
+        <div className="max-w-5xl mx-auto">
           {/* Main statement */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="mb-16"
+            className="text-center mb-16"
           >
             <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-6">
+              ليس مجرد أداة بناء مواقع
+            </h2>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
               <motion.span
-                className="hero-gradient bg-clip-text text-transparent inline-block"
+                className="hero-gradient bg-clip-text text-transparent font-bold inline-block"
                 whileHover={{ scale: 1.05 }}
               >
                 Chat2Site
               </motion.span>
-              {" "}يلغي الوسيط
-            </h2>
-            <p className="text-xl text-muted-foreground">
-              وكيل ذكي يفهم ويقرر وينفذ
+              {" "}وكيل ذكي يعمل بالنيابة عنك — يفهم، يقرر، ينفذ، وينشر
             </p>
           </motion.div>
           
@@ -57,7 +63,7 @@ const SolutionSection = () => {
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
-            className="grid grid-cols-2 md:grid-cols-5 gap-6 mb-16"
+            className="grid md:grid-cols-4 gap-6 mb-16"
           >
             {capabilities.map((cap, index) => (
               <motion.div
@@ -76,7 +82,28 @@ const SolutionSection = () => {
                 >
                   <cap.icon className="w-7 h-7 text-primary-foreground" />
                 </motion.div>
-                <span className="font-medium text-foreground">{cap.text}</span>
+                <span className="font-bold text-foreground">{cap.text}</span>
+                <span className="text-sm text-muted-foreground text-center">{cap.description}</span>
+              </motion.div>
+            ))}
+          </motion.div>
+
+          {/* Agent features */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            className="flex flex-wrap justify-center gap-4 mb-16"
+          >
+            {agentFeatures.map((feature, index) => (
+              <motion.div
+                key={index}
+                whileHover={{ scale: 1.05 }}
+                className="flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary"
+              >
+                <feature.icon className="w-4 h-4" />
+                <span className="text-sm font-medium">{feature.text}</span>
               </motion.div>
             ))}
           </motion.div>
@@ -88,18 +115,20 @@ const SolutionSection = () => {
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
             whileHover={{ scale: 1.02 }}
-            className="p-8 rounded-2xl bg-card shadow-elevated"
+            className="p-8 rounded-2xl bg-card shadow-elevated text-center"
           >
-            <p className="text-2xl md:text-3xl font-bold text-foreground">
-              لا تسأله <span className="text-muted-foreground">كيف</span>
-              <br />
-              أخبره <motion.span
+            <p className="text-2xl md:text-3xl font-bold text-foreground mb-4">
+              أنت <span className="text-muted-foreground">لا تبني</span> — أنت{" "}
+              <motion.span
                 className="hero-gradient bg-clip-text text-transparent inline-block"
                 animate={{ scale: [1, 1.05, 1] }}
                 transition={{ duration: 2, repeat: Infinity }}
               >
-                ماذا تريد
+                توجّه
               </motion.span>
+            </p>
+            <p className="text-muted-foreground">
+              الوكيل يتولى كل التفاصيل التقنية والتصميمية. أنت فقط تخبره بما تريد.
             </p>
           </motion.div>
         </div>
