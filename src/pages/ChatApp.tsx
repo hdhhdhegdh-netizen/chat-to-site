@@ -12,6 +12,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import ChatMessage from "@/components/chat/ChatMessage";
 import ChatInput from "@/components/chat/ChatInput";
 import TemplatesModal, { Template } from "@/components/templates/TemplatesModal";
+import KeyboardShortcutsHelp from "@/components/KeyboardShortcutsHelp";
 import {
   Dialog,
   DialogContent,
@@ -495,6 +496,7 @@ const ChatApp = () => {
           </div>
 
           <div className="flex items-center gap-2">
+            <KeyboardShortcutsHelp />
             {publishStatus === "published" && publishedUrl && (
               <Button
                 variant="outline"
