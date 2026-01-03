@@ -3,6 +3,7 @@ import { ArrowRight, MessageCircle, Zap, Globe, Paintbrush, RefreshCw, HelpCircl
 import Header from "@/components/landing/Header";
 import Footer from "@/components/landing/Footer";
 import { motion } from "framer-motion";
+import SEO from "@/components/SEO";
 
 const sections = [
   {
@@ -78,6 +79,10 @@ yoursite.chat2site.app
 const Docs = () => {
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
+      <SEO 
+        title="كيف يعمل Chat2Site"
+        description="تعرف على كيفية استخدام Chat2Site لبناء موقعك. دليل شامل للبدء السريع والتخصيص والنشر."
+      />
       {/* Background gradient */}
       <div className="fixed inset-0 bg-gradient-to-br from-primary/3 via-background to-accent/3 pointer-events-none" />
       

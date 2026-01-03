@@ -8,6 +8,7 @@ import { useSubscription, SubscriptionPlan } from "@/hooks/useSubscription";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
+import SEO from "@/components/SEO";
 import {
   Dialog,
   DialogContent,
@@ -80,6 +81,10 @@ const Pricing = () => {
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
+      <SEO 
+        title="الأسعار"
+        description="اختر الباقة المناسبة لك. ابدأ مجاناً أو اختر إحدى الباقات المدفوعة للحصول على ميزات متقدمة."
+      />
       {/* Background gradient */}
       <div className="fixed inset-0 bg-gradient-to-br from-primary/5 via-background to-accent/5 pointer-events-none" />
       

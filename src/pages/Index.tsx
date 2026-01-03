@@ -10,10 +10,12 @@ import FAQSection from "@/components/landing/FAQSection";
 import CTASection from "@/components/landing/CTASection";
 import Footer from "@/components/landing/Footer";
 import { ScrollAnimatedSection } from "@/components/ui/scroll-animated-section";
+import SEO from "@/components/SEO";
 
 const Index = () => {
   return (
     <div className="min-h-screen bg-background">
+      <SEO />
       <Header />
       <main className="pt-16">
         <HeroSection />
