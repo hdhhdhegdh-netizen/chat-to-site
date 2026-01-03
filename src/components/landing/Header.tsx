@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { Menu, X, Sparkles } from "lucide-react";
+import { Menu, X, Sparkles, Download } from "lucide-react";
 import { useState } from "react";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { motion } from "framer-motion";
@@ -61,6 +61,11 @@ const Header = () => {
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center gap-3">
             <ThemeToggle />
+            <Link to="/install">
+              <Button variant="ghost" size="icon" className="hover:bg-primary/10" title="تثبيت التطبيق">
+                <Download className="w-4 h-4" />
+              </Button>
+            </Link>
             <Link to="/dashboard">
               <Button variant="ghost" className="hover:bg-primary/10">لوحة التحكم</Button>
             </Link>
@@ -118,6 +123,12 @@ const Header = () => {
                   <span className="text-sm text-muted-foreground">الوضع الليلي</span>
                   <ThemeToggle />
                 </div>
+                <Link to="/install" onClick={() => setIsMenuOpen(false)}>
+                  <Button variant="ghost" className="w-full gap-2">
+                    <Download className="w-4 h-4" />
+                    تثبيت التطبيق
+                  </Button>
+                </Link>
                 <Link to="/dashboard" onClick={() => setIsMenuOpen(false)}>
                   <Button variant="ghost" className="w-full">لوحة التحكم</Button>
                 </Link>
