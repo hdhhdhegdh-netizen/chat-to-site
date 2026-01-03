@@ -32,8 +32,23 @@ const itemVariants = {
 
 const WhySection = () => {
   return (
-    <section className="py-24 subtle-gradient">
-      <div className="container px-4">
+    <section className="py-24 relative overflow-hidden">
+      {/* Gradient background */}
+      <div className="absolute inset-0 bg-gradient-to-b from-card via-background to-card" />
+      
+      {/* Floating orbs */}
+      <motion.div
+        className="absolute top-1/4 left-10 w-64 h-64 bg-primary/5 rounded-full blur-3xl"
+        animate={{ y: [0, -30, 0] }}
+        transition={{ duration: 8, repeat: Infinity }}
+      />
+      <motion.div
+        className="absolute bottom-1/4 right-10 w-64 h-64 bg-accent/5 rounded-full blur-3xl"
+        animate={{ y: [0, 30, 0] }}
+        transition={{ duration: 10, repeat: Infinity }}
+      />
+
+      <div className="container px-4 relative z-10">
         <div className="max-w-5xl mx-auto">
           {/* Section header */}
           <motion.div
@@ -49,7 +64,7 @@ const WhySection = () => {
             <p className="text-lg text-muted-foreground">
               وكيل ذكي يعمل{" "}
               <motion.span
-                className="font-bold text-primary inline-block"
+                className="font-bold hero-gradient bg-clip-text text-transparent inline-block"
                 animate={{ scale: [1, 1.1, 1] }}
                 transition={{ duration: 1.5, repeat: Infinity }}
               >
@@ -59,7 +74,7 @@ const WhySection = () => {
             </p>
           </motion.div>
           
-          {/* Features grid */}
+          {/* Features grid with glassmorphism */}
           <motion.div
             variants={containerVariants}
             initial="hidden"
@@ -75,26 +90,32 @@ const WhySection = () => {
                   y: -8,
                   transition: { duration: 0.2 }
                 }}
-                className="group p-6 rounded-2xl bg-card shadow-card hover:shadow-elevated transition-all duration-300 border border-transparent hover:border-primary/20"
+                className="group relative"
               >
-                <div className="flex items-start gap-4">
-                  <motion.div
-                    whileHover={{ rotate: 360, scale: 1.1 }}
-                    transition={{ duration: 0.5 }}
-                    className="flex-shrink-0 w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary transition-all duration-300"
-                  >
-                    <feature.icon className="w-6 h-6 text-primary group-hover:text-primary-foreground transition-colors" />
-                  </motion.div>
-                  <div>
-                    <h3 className="text-lg font-bold text-foreground mb-1">{feature.text}</h3>
-                    <p className="text-muted-foreground text-sm">{feature.description}</p>
+                {/* Gradient border on hover */}
+                <motion.div
+                  className="absolute inset-0 rounded-2xl hero-gradient opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-sm"
+                />
+                <div className="relative p-6 rounded-2xl bg-background/80 backdrop-blur-sm border border-border/50 group-hover:border-transparent transition-all duration-300 h-full">
+                  <div className="flex items-start gap-4">
+                    <motion.div
+                      whileHover={{ rotate: 360, scale: 1.1 }}
+                      transition={{ duration: 0.5 }}
+                      className="flex-shrink-0 w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center group-hover:hero-gradient transition-all duration-300"
+                    >
+                      <feature.icon className="w-7 h-7 text-primary group-hover:text-primary-foreground transition-colors" />
+                    </motion.div>
+                    <div>
+                      <h3 className="text-lg font-bold text-foreground mb-1 group-hover:text-primary transition-colors">{feature.text}</h3>
+                      <p className="text-muted-foreground text-sm">{feature.description}</p>
+                    </div>
                   </div>
                 </div>
               </motion.div>
             ))}
           </motion.div>
           
-          {/* Bottom emphasis */}
+          {/* Bottom emphasis with glow */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -104,17 +125,25 @@ const WhySection = () => {
           >
             <motion.div
               whileHover={{ scale: 1.05 }}
-              className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-primary/10"
+              className="relative inline-block"
             >
               <motion.div
-                animate={{ scale: [1, 1.2, 1] }}
-                transition={{ duration: 1, repeat: Infinity }}
-              >
-                <Check className="w-5 h-5 text-primary" />
-              </motion.div>
-              <span className="font-medium text-foreground">
-                موقع كامل ومنشور من محادثة واحدة
-              </span>
+                className="absolute inset-0 hero-gradient rounded-full blur-lg opacity-30"
+                animate={{ opacity: [0.2, 0.4, 0.2] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              />
+              <div className="relative flex items-center gap-3 px-8 py-4 rounded-full bg-background/80 backdrop-blur-sm border border-primary/20">
+                <motion.div
+                  animate={{ scale: [1, 1.3, 1] }}
+                  transition={{ duration: 1, repeat: Infinity }}
+                  className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center"
+                >
+                  <Check className="w-5 h-5 text-primary" />
+                </motion.div>
+                <span className="font-medium text-foreground text-lg">
+                  موقع كامل ومنشور من محادثة واحدة
+                </span>
+              </div>
             </motion.div>
           </motion.div>
         </div>
