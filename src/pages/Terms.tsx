@@ -3,6 +3,7 @@ import Footer from "@/components/landing/Footer";
 import { motion } from "framer-motion";
 import { FileText, CheckCircle, XCircle, AlertTriangle, Scale, RefreshCw } from "lucide-react";
 import { ScrollAnimatedSection } from "@/components/ui/scroll-animated-section";
+import SEO from "@/components/SEO";
 
 const Terms = () => {
   const sections = [
@@ -66,6 +67,10 @@ const Terms = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO 
+        title="شروط الاستخدام"
+        description="اقرأ شروط وأحكام استخدام Chat2Site. يرجى مراجعة هذه الشروط قبل استخدام خدماتنا."
+      />
       {/* Gradient background */}
       <div className="fixed inset-0 -z-10">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-accent/5" />

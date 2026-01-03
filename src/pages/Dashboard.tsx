@@ -11,6 +11,7 @@ import { motion } from "framer-motion";
 import { StatsCards } from "@/components/analytics/StatsCards";
 import { VisitorsChart } from "@/components/analytics/VisitorsChart";
 import { SkeletonPage } from "@/components/ui/skeleton-card";
+import SEO from "@/components/SEO";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -79,6 +80,11 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
+      <SEO 
+        title="لوحة التحكم"
+        description="إدارة مشاريعك ومواقعك المنشورة من لوحة تحكم Chat2Site."
+        noIndex
+      />
       {/* Background gradient */}
       <div className="fixed inset-0 bg-gradient-to-br from-primary/3 via-background to-accent/3 pointer-events-none" />
       

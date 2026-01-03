@@ -3,6 +3,7 @@ import Footer from "@/components/landing/Footer";
 import { motion } from "framer-motion";
 import { Shield, Lock, Eye, Database, UserCheck, Mail } from "lucide-react";
 import { ScrollAnimatedSection } from "@/components/ui/scroll-animated-section";
+import SEO from "@/components/SEO";
 
 const Privacy = () => {
   const sections = [
@@ -63,6 +64,10 @@ const Privacy = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO 
+        title="سياسة الخصوصية"
+        description="تعرف على كيفية حماية بياناتك وخصوصيتك في Chat2Site. نحن ملتزمون بحماية معلوماتك الشخصية."
+      />
       {/* Gradient background */}
       <div className="fixed inset-0 -z-10">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-accent/5" />

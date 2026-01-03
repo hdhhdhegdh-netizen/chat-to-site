@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
 import { Loader2, Mail, Lock, User, Sparkles } from "lucide-react";
 import { z } from "zod";
+import SEO from "@/components/SEO";
 
 const emailSchema = z.string().email("البريد الإلكتروني غير صالح");
 const passwordSchema = z.string().min(6, "كلمة المرور يجب أن تكون 6 أحرف على الأقل");
@@ -130,6 +131,11 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+      <SEO 
+        title="تسجيل الدخول"
+        description="سجل دخولك أو أنشئ حساباً جديداً للبدء في بناء موقعك مع Chat2Site."
+        noIndex
+      />
       {/* Animated gradient background */}
       <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-accent/5" />
       
