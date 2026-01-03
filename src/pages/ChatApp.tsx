@@ -1,7 +1,7 @@
 import { useRef, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send, Globe, Menu, X, Loader2, Trash2, Monitor, Smartphone, Tablet, ExternalLink, LayoutTemplate, LogOut, FolderOpen, Bot, Sparkles, Share2, Check, Copy, Link as LinkIcon } from "lucide-react";
+import { Send, Globe, Menu, X, Loader2, Trash2, Monitor, Smartphone, Tablet, ExternalLink, LayoutTemplate, LogOut, FolderOpen, Bot, Sparkles, Share2, Check, Copy, Link as LinkIcon, Download } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAIChat } from "@/hooks/useAIChat";
 import { useAuth } from "@/hooks/useAuth";
@@ -453,6 +453,33 @@ const ChatApp = () => {
           </div>
 
           <div className="flex items-center gap-2">
+            {/* Export/Download Button */}
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={!generatedHTML}
+              onClick={() => {
+                if (generatedHTML) {
+                  const blob = new Blob([generatedHTML], { type: 'text/html;charset=utf-8' });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = `${currentProject?.name || 'website'}.html`;
+                  document.body.appendChild(a);
+                  a.click();
+                  document.body.removeChild(a);
+                  URL.revokeObjectURL(url);
+                  toast({
+                    title: "تم التصدير! 📥",
+                    description: "تم تحميل ملف HTML لموقعك",
+                  });
+                }
+              }}
+            >
+              <Download className="w-4 h-4" />
+              تصدير
+            </Button>
+            
             {publishStatus === "published" && publishedUrl && (
               <Button
                 variant="outline"
