@@ -178,7 +178,7 @@ const ChatApp = () => {
   const publishStatus = getPublishStatus();
 
   return (
-    <div className="h-screen flex bg-background">
+    <div className="h-screen flex bg-gradient-to-br from-background via-background to-primary/5">
       {/* Templates Modal */}
       <TemplatesModal
         isOpen={showTemplates}
@@ -256,54 +256,70 @@ const ChatApp = () => {
             animate={{ width: 280, opacity: 1 }}
             exit={{ width: 0, opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="bg-card border-l border-border overflow-hidden flex flex-col"
+            className="chat-sidebar border-l border-primary/10 overflow-hidden flex flex-col shadow-lg"
           >
-            <div className="p-4 border-b border-border">
-              <Link to="/" className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg hero-gradient flex items-center justify-center">
-                  <Bot className="w-4 h-4 text-primary-foreground" />
-                </div>
-                <span className="font-bold text-lg text-foreground">Chat2Site</span>
+            <div className="p-4 border-b border-primary/10 bg-gradient-to-l from-primary/5 to-transparent">
+              <Link to="/" className="flex items-center gap-2 group">
+                <motion.div 
+                  className="w-10 h-10 rounded-xl hero-gradient flex items-center justify-center shadow-glow"
+                  whileHover={{ scale: 1.05, rotate: 5 }}
+                  transition={{ type: "spring", stiffness: 400 }}
+                >
+                  <Bot className="w-5 h-5 text-primary-foreground" />
+                </motion.div>
+                <span className="font-bold text-xl bg-gradient-to-l from-primary to-accent bg-clip-text text-transparent">Chat2Site</span>
               </Link>
             </div>
 
             <nav className="flex-1 p-4 overflow-y-auto">
               {/* Agent Status */}
-              <div className="mb-6 p-4 rounded-xl bg-primary/5 border border-primary/10">
-                <div className="flex items-center gap-3 mb-2">
+              <motion.div 
+                className="mb-6 p-4 rounded-2xl bg-gradient-to-br from-primary/10 via-accent/5 to-transparent border border-primary/20 shadow-soft"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+              >
+                <div className="flex items-center gap-3 mb-3">
                   <motion.div
-                    animate={{ scale: isStreaming ? [1, 1.1, 1] : 1 }}
-                    transition={{ duration: 1, repeat: isStreaming ? Infinity : 0 }}
-                    className="w-10 h-10 rounded-lg hero-gradient flex items-center justify-center"
+                    animate={{ 
+                      scale: isStreaming ? [1, 1.1, 1] : 1,
+                      boxShadow: isStreaming 
+                        ? ["0 0 20px hsl(221, 83%, 53%, 0.3)", "0 0 40px hsl(221, 83%, 53%, 0.5)", "0 0 20px hsl(221, 83%, 53%, 0.3)"]
+                        : "0 0 20px hsl(221, 83%, 53%, 0.2)"
+                    }}
+                    transition={{ duration: 1.5, repeat: isStreaming ? Infinity : 0 }}
+                    className="w-12 h-12 rounded-xl hero-gradient flex items-center justify-center"
                   >
                     {isStreaming ? (
-                      <Loader2 className="w-5 h-5 text-primary-foreground animate-spin" />
+                      <Loader2 className="w-6 h-6 text-primary-foreground animate-spin" />
                     ) : (
-                      <Bot className="w-5 h-5 text-primary-foreground" />
+                      <Sparkles className="w-6 h-6 text-primary-foreground" />
                     )}
                   </motion.div>
                   <div>
-                    <p className="font-bold text-foreground text-sm">وكيلك الذكي</p>
+                    <p className="font-bold text-foreground">وكيلك الذكي</p>
                     <p className="text-xs text-muted-foreground">
-                      {isStreaming ? "يعمل الآن..." : "جاهز للعمل"}
+                      {isStreaming ? "✨ يبني موقعك الآن..." : "⚡ جاهز للعمل"}
                     </p>
                   </div>
                 </div>
-                <motion.div
-                  className="w-full h-1 rounded-full bg-primary/20 overflow-hidden"
-                >
+                <div className="w-full h-1.5 rounded-full bg-primary/20 overflow-hidden">
                   {isStreaming ? (
                     <motion.div
-                      className="h-full bg-primary rounded-full"
+                      className="h-full hero-gradient rounded-full"
                       animate={{ x: ["-100%", "100%"] }}
-                      transition={{ duration: 1, repeat: Infinity }}
-                      style={{ width: "30%" }}
+                      transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
+                      style={{ width: "40%" }}
                     />
                   ) : (
-                    <div className="h-full bg-primary rounded-full w-full" />
+                    <motion.div 
+                      className="h-full hero-gradient rounded-full"
+                      initial={{ width: 0 }}
+                      animate={{ width: "100%" }}
+                      transition={{ duration: 0.5 }}
+                    />
                   )}
-                </motion.div>
-              </div>
+                </div>
+              </motion.div>
 
               {/* Current project */}
               <div className="space-y-2 mb-4">
@@ -420,7 +436,7 @@ const ChatApp = () => {
       {/* Main content */}
       <div className="flex-1 flex flex-col">
         {/* Header */}
-        <header className="h-14 border-b border-border flex items-center justify-between px-4 bg-card">
+        <header className="h-14 border-b border-primary/10 flex items-center justify-between px-4 bg-gradient-to-l from-card via-card to-primary/5 backdrop-blur-sm">
           <div className="flex items-center gap-4">
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -482,7 +498,7 @@ const ChatApp = () => {
         {/* Chat + Preview split */}
         <div className="flex-1 flex overflow-hidden">
           {/* Chat area */}
-          <div className="w-2/5 flex flex-col border-l border-border">
+          <div className="w-2/5 flex flex-col border-l border-primary/10 bg-gradient-to-b from-card/50 to-background">
             {/* Messages */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
               <AnimatePresence initial={false}>
@@ -553,32 +569,38 @@ const ChatApp = () => {
             </div>
 
             {/* Input */}
-            <div className="p-4 border-t border-border bg-card">
+            <div className="p-4 border-t border-primary/10 bg-gradient-to-t from-card to-transparent backdrop-blur-sm">
               <div className="flex gap-3">
                 <Input
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyPress={handleKeyPress}
                   placeholder="أخبر وكيلك بما تريد... مثال: أريد موقع لمكتب محاماة"
-                  className="flex-1 text-right text-sm"
+                  className="flex-1 text-right text-sm border-primary/20 focus:border-primary/40 bg-background/80"
                   disabled={isStreaming}
                 />
-                <Button onClick={handleSend} disabled={!input.trim() || isStreaming} size="sm">
-                  {isStreaming ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Send className="w-4 h-4" />
-                  )}
-                </Button>
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <Button 
+                    onClick={handleSend} 
+                    disabled={!input.trim() || isStreaming} 
+                    className="hero-gradient shadow-glow"
+                  >
+                    {isStreaming ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Send className="w-4 h-4" />
+                    )}
+                  </Button>
+                </motion.div>
               </div>
               <p className="mt-2 text-xs text-muted-foreground text-center">
-                الوكيل يبني موقعك ويمكنك نشره مباشرة
+                ✨ الوكيل يبني موقعك ويمكنك نشره مباشرة
               </p>
             </div>
           </div>
 
           {/* Preview area */}
-          <div className="w-3/5 bg-muted/50 flex flex-col">
+          <div className="w-3/5 preview-area flex flex-col">
             {/* Preview toolbar */}
             <div className="p-2 border-b border-border bg-card flex items-center justify-between">
               <div className="flex items-center gap-2">
