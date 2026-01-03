@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Bot, Heart, Sparkles } from "lucide-react";
+import { Bot, Heart, Sparkles, Download, HelpCircle } from "lucide-react";
 import { motion } from "framer-motion";
 
 const Footer = () => {
@@ -42,14 +42,17 @@ const Footer = () => {
               { to: "/", label: "الرئيسية" },
               { to: "/pricing", label: "الأسعار" },
               { to: "/docs", label: "المساعدة" },
+              { to: "/onboarding", label: "كيف يعمل", icon: <HelpCircle className="w-3 h-3" /> },
+              { to: "/install", label: "تثبيت التطبيق", icon: <Download className="w-3 h-3" /> },
               { to: "/privacy", label: "الخصوصية" },
               { to: "/terms", label: "الشروط" },
             ].map((link) => (
               <Link
                 key={link.to}
                 to={link.to}
-                className="text-background/70 hover:text-background transition-colors relative group"
+                className="text-background/70 hover:text-background transition-colors relative group flex items-center gap-1"
               >
+                {link.icon}
                 {link.label}
                 <motion.span
                   className="absolute -bottom-1 left-0 right-0 h-0.5 bg-primary origin-right"

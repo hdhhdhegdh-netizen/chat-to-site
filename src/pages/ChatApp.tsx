@@ -68,12 +68,17 @@ const ChatApp = () => {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [sidebarOpen, generatedHTML, isStreaming, isPublishing]);
 
-  // Show templates modal for new users
+  // Redirect to onboarding for first-time users, then show templates
   useEffect(() => {
+    const onboardingCompleted = localStorage.getItem("onboarding-completed");
+    if (!onboardingCompleted && !authLoading) {
+      navigate("/onboarding");
+      return;
+    }
     if (!authLoading && !currentProject && messages.length <= 1) {
       setShowTemplates(true);
     }
-  }, [authLoading, currentProject, messages.length]);
+  }, [authLoading, currentProject, messages.length, navigate]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
