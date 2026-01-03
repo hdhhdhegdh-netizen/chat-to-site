@@ -17,7 +17,9 @@ import ViewSite from "./pages/ViewSite";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import Install from "./pages/Install";
+import Onboarding from "./pages/Onboarding";
 import NotFound from "./pages/NotFound";
+import PWAInstallPrompt from "./components/PWAInstallPrompt";
 
 const queryClient = new QueryClient();
 
@@ -28,6 +30,7 @@ const App = () => (
         <NotificationProvider>
           <Toaster />
           <Sonner />
+          <PWAInstallPrompt />
           <BrowserRouter>
             <Routes>
               <Route path="/" element={<Index />} />
@@ -42,6 +45,7 @@ const App = () => (
               <Route path="/privacy" element={<Privacy />} />
               <Route path="/terms" element={<Terms />} />
               <Route path="/install" element={<Install />} />
+              <Route path="/onboarding" element={<Onboarding />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
