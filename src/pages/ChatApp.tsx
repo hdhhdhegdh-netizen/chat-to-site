@@ -453,33 +453,6 @@ const ChatApp = () => {
           </div>
 
           <div className="flex items-center gap-2">
-            {/* Export/Download Button */}
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={!generatedHTML}
-              onClick={() => {
-                if (generatedHTML) {
-                  const blob = new Blob([generatedHTML], { type: 'text/html;charset=utf-8' });
-                  const url = URL.createObjectURL(blob);
-                  const a = document.createElement('a');
-                  a.href = url;
-                  a.download = `${currentProject?.name || 'website'}.html`;
-                  document.body.appendChild(a);
-                  a.click();
-                  document.body.removeChild(a);
-                  URL.revokeObjectURL(url);
-                  toast({
-                    title: "تم التصدير! 📥",
-                    description: "تم تحميل ملف HTML لموقعك",
-                  });
-                }
-              }}
-            >
-              <Download className="w-4 h-4" />
-              تصدير
-            </Button>
-            
             {publishStatus === "published" && publishedUrl && (
               <Button
                 variant="outline"
