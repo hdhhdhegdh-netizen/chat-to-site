@@ -39,6 +39,34 @@ const ChatApp = () => {
   const { addNotification } = useNotifications();
   const navigate = useNavigate();
 
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Escape to close sidebar
+      if (e.key === "Escape" && sidebarOpen) {
+        setSidebarOpen(false);
+      }
+      // Ctrl+B to toggle sidebar
+      if (e.ctrlKey && e.key === "b") {
+        e.preventDefault();
+        setSidebarOpen(prev => !prev);
+      }
+      // Ctrl+N for new chat
+      if (e.ctrlKey && e.key === "n") {
+        e.preventDefault();
+        handleClearChat();
+      }
+      // Ctrl+P to publish
+      if (e.ctrlKey && e.key === "p" && generatedHTML && !isStreaming && !isPublishing) {
+        e.preventDefault();
+        handlePublish();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [sidebarOpen, generatedHTML, isStreaming, isPublishing]);
+
   // Show templates modal for new users
   useEffect(() => {
     if (!authLoading && !currentProject && messages.length <= 1) {
