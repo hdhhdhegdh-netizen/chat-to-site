@@ -114,6 +114,10 @@ const Header = () => {
                 </motion.div>
               ))}
               <div className="flex flex-col gap-2 pt-4 border-t border-border/50">
+                <div className="flex items-center justify-between px-4 py-2">
+                  <span className="text-sm text-muted-foreground">الوضع الليلي</span>
+                  <ThemeToggle />
+                </div>
                 <Link to="/dashboard" onClick={() => setIsMenuOpen(false)}>
                   <Button variant="ghost" className="w-full">لوحة التحكم</Button>
                 </Link>
