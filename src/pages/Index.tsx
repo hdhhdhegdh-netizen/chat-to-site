@@ -9,6 +9,7 @@ import TestimonialsSection from "@/components/landing/TestimonialsSection";
 import FAQSection from "@/components/landing/FAQSection";
 import CTASection from "@/components/landing/CTASection";
 import Footer from "@/components/landing/Footer";
+import { ScrollAnimatedSection } from "@/components/ui/scroll-animated-section";
 
 const Index = () => {
   return (
@@ -16,14 +17,30 @@ const Index = () => {
       <Header />
       <main className="pt-16">
         <HeroSection />
-        <StatsSection />
-        <ProblemSection />
-        <SolutionSection />
-        <HowItWorksSection />
-        <WhySection />
-        <TestimonialsSection />
-        <FAQSection />
-        <CTASection />
+        <ScrollAnimatedSection animation="fadeUp">
+          <StatsSection />
+        </ScrollAnimatedSection>
+        <ScrollAnimatedSection animation="fadeUp" delay={0.1}>
+          <ProblemSection />
+        </ScrollAnimatedSection>
+        <ScrollAnimatedSection animation="fadeUp" delay={0.1}>
+          <SolutionSection />
+        </ScrollAnimatedSection>
+        <ScrollAnimatedSection animation="fadeUp" delay={0.1}>
+          <HowItWorksSection />
+        </ScrollAnimatedSection>
+        <ScrollAnimatedSection animation="fadeUp" delay={0.1}>
+          <WhySection />
+        </ScrollAnimatedSection>
+        <ScrollAnimatedSection animation="fadeUp" delay={0.1}>
+          <TestimonialsSection />
+        </ScrollAnimatedSection>
+        <ScrollAnimatedSection animation="fadeUp" delay={0.1}>
+          <FAQSection />
+        </ScrollAnimatedSection>
+        <ScrollAnimatedSection animation="scaleUp" delay={0.1}>
+          <CTASection />
+        </ScrollAnimatedSection>
       </main>
       <Footer />
     </div>

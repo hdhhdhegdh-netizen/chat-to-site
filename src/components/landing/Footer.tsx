@@ -37,11 +37,13 @@ const Footer = () => {
           </motion.div>
           
           {/* Navigation */}
-          <nav className="flex items-center gap-8">
+          <nav className="flex items-center gap-6 flex-wrap justify-center">
             {[
               { to: "/", label: "الرئيسية" },
               { to: "/pricing", label: "الأسعار" },
               { to: "/docs", label: "المساعدة" },
+              { to: "/privacy", label: "الخصوصية" },
+              { to: "/terms", label: "الشروط" },
             ].map((link) => (
               <Link
                 key={link.to}
