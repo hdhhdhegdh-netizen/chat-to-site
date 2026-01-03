@@ -11,6 +11,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { useSubscription } from "@/hooks/useSubscription";
 import { Skeleton } from "@/components/ui/skeleton";
+import { motion } from "framer-motion";
 import {
   Dialog,
   DialogContent,
@@ -99,236 +100,338 @@ const Account = () => {
     );
   }
 
+  const cardData = [
+    {
+      icon: User,
+      title: "الملف الشخصي",
+      description: "معلوماتك الأساسية",
+    },
+    {
+      icon: CreditCard,
+      title: "الاشتراك",
+      description: "إدارة خطة اشتراكك",
+    },
+    {
+      icon: Bell,
+      title: "الإشعارات",
+      description: "تفضيلات البريد الإلكتروني",
+    },
+    {
+      icon: Lock,
+      title: "الأمان",
+      description: "إدارة كلمة المرور",
+    },
+  ];
+
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background relative overflow-hidden">
+      {/* Background gradient */}
+      <div className="fixed inset-0 bg-gradient-to-br from-primary/3 via-background to-accent/3 pointer-events-none" />
+      
+      {/* Floating orbs */}
+      <motion.div
+        className="fixed top-40 left-10 w-64 h-64 bg-gradient-to-br from-primary/10 to-accent/10 rounded-full blur-3xl pointer-events-none"
+        animate={{
+          x: [0, 30, 0],
+          y: [0, 20, 0],
+        }}
+        transition={{
+          duration: 10,
+          repeat: Infinity,
+          ease: "easeInOut",
+        }}
+      />
+      
       <Header />
       
-      <main className="pt-20 pb-12">
+      <main className="pt-20 pb-12 relative z-10">
         <div className="container px-4 max-w-4xl">
-          <Link 
-            to="/dashboard" 
-            className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 transition-colors"
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
           >
-            <ArrowRight className="w-4 h-4" />
-            العودة للوحة التحكم
-          </Link>
+            <Link 
+              to="/dashboard" 
+              className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary mb-6 transition-colors group"
+            >
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              العودة للوحة التحكم
+            </Link>
+          </motion.div>
 
-          <h1 className="text-3xl font-bold text-foreground mb-8">إعدادات الحساب</h1>
+          <motion.h1 
+            className="text-3xl font-bold text-foreground mb-8"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            إعدادات الحساب
+          </motion.h1>
 
           <div className="space-y-6">
             {/* Profile Section */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                    <User className="w-5 h-5 text-primary" />
-                  </div>
-                  <div>
-                    <CardTitle>الملف الشخصي</CardTitle>
-                    <CardDescription>معلوماتك الأساسية</CardDescription>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="name">الاسم</Label>
-                    <Input 
-                      id="name" 
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      placeholder="أدخل اسمك"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="email">البريد الإلكتروني</Label>
-                    <Input 
-                      id="email" 
-                      type="email" 
-                      value={email}
-                      disabled
-                      className="bg-muted"
-                    />
-                  </div>
-                </div>
-                <Button onClick={handleSaveProfile} disabled={saving}>
-                  {saving && <Loader2 className="w-4 h-4 ml-2 animate-spin" />}
-                  حفظ التغييرات
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* Subscription Section */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                    <CreditCard className="w-5 h-5 text-primary" />
-                  </div>
-                  <div>
-                    <CardTitle>الاشتراك</CardTitle>
-                    <CardDescription>إدارة خطة اشتراكك</CardDescription>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                {subLoading ? (
-                  <div className="space-y-4">
-                    <Skeleton className="h-6 w-32" />
-                    <Skeleton className="h-4 w-48" />
-                  </div>
-                ) : subscription ? (
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between p-4 rounded-lg bg-muted">
-                      <div>
-                        <p className="font-medium">
-                          الخطة الحالية: <span className="text-primary">{currentPlan?.name_ar || 'مجانية'}</span>
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          الحالة: {subscription.status === 'active' ? 'نشط' : 'غير نشط'}
-                        </p>
-                        {subscription.current_period_end && (
-                          <p className="text-sm text-muted-foreground">
-                            التجديد: {new Date(subscription.current_period_end).toLocaleDateString('ar-SA')}
-                          </p>
-                        )}
-                      </div>
-                      <Link to="/pricing">
-                        <Button variant="outline">تغيير الخطة</Button>
-                      </Link>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              whileHover={{ y: -2 }}
+              className="group"
+            >
+              <Card className="backdrop-blur-sm bg-card/80 border-border/50 shadow-lg hover:shadow-xl hover:border-primary/30 transition-all duration-300 relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                <CardHeader className="relative">
+                  <div className="flex items-center gap-3">
+                    <motion.div 
+                      className="w-12 h-12 rounded-xl hero-gradient flex items-center justify-center shadow-lg shadow-primary/20"
+                      whileHover={{ rotate: 5, scale: 1.05 }}
+                    >
+                      <User className="w-6 h-6 text-primary-foreground" />
+                    </motion.div>
+                    <div>
+                      <CardTitle>الملف الشخصي</CardTitle>
+                      <CardDescription>معلوماتك الأساسية</CardDescription>
                     </div>
                   </div>
-                ) : (
-                  <div className="text-center py-6">
-                    <p className="text-muted-foreground mb-4">لا يوجد اشتراك حالي</p>
-                    <Link to="/pricing">
-                      <Button>اشترك الآن</Button>
-                    </Link>
+                </CardHeader>
+                <CardContent className="space-y-4 relative">
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label htmlFor="name">الاسم</Label>
+                      <Input 
+                        id="name" 
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        placeholder="أدخل اسمك"
+                        className="bg-background/50 border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="email">البريد الإلكتروني</Label>
+                      <Input 
+                        id="email" 
+                        type="email" 
+                        value={email}
+                        disabled
+                        className="bg-muted/50"
+                      />
+                    </div>
                   </div>
-                )}
-              </CardContent>
-            </Card>
+                  <Button onClick={handleSaveProfile} disabled={saving} className="hero-gradient text-primary-foreground shadow-lg shadow-primary/20">
+                    {saving && <Loader2 className="w-4 h-4 ml-2 animate-spin" />}
+                    حفظ التغييرات
+                  </Button>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            {/* Subscription Section */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              whileHover={{ y: -2 }}
+              className="group"
+            >
+              <Card className="backdrop-blur-sm bg-card/80 border-border/50 shadow-lg hover:shadow-xl hover:border-primary/30 transition-all duration-300 relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                <CardHeader className="relative">
+                  <div className="flex items-center gap-3">
+                    <motion.div 
+                      className="w-12 h-12 rounded-xl hero-gradient flex items-center justify-center shadow-lg shadow-primary/20"
+                      whileHover={{ rotate: 5, scale: 1.05 }}
+                    >
+                      <CreditCard className="w-6 h-6 text-primary-foreground" />
+                    </motion.div>
+                    <div>
+                      <CardTitle>الاشتراك</CardTitle>
+                      <CardDescription>إدارة خطة اشتراكك</CardDescription>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="relative">
+                  {subLoading ? (
+                    <div className="space-y-4">
+                      <Skeleton className="h-6 w-32" />
+                      <Skeleton className="h-4 w-48" />
+                    </div>
+                  ) : subscription ? (
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between p-4 rounded-xl bg-muted/50 backdrop-blur-sm border border-border/30">
+                        <div>
+                          <p className="font-medium">
+                            الخطة الحالية: <span className="text-primary">{currentPlan?.name_ar || 'مجانية'}</span>
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            الحالة: {subscription.status === 'active' ? 'نشط' : 'غير نشط'}
+                          </p>
+                          {subscription.current_period_end && (
+                            <p className="text-sm text-muted-foreground">
+                              التجديد: {new Date(subscription.current_period_end).toLocaleDateString('ar-SA')}
+                            </p>
+                          )}
+                        </div>
+                        <Link to="/pricing">
+                          <Button variant="outline" className="hover:border-primary hover:text-primary transition-colors">تغيير الخطة</Button>
+                        </Link>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center py-6">
+                      <p className="text-muted-foreground mb-4">لا يوجد اشتراك حالي</p>
+                      <Link to="/pricing">
+                        <Button className="hero-gradient text-primary-foreground">اشترك الآن</Button>
+                      </Link>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </motion.div>
 
             {/* Notifications Section */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                    <Bell className="w-5 h-5 text-primary" />
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              whileHover={{ y: -2 }}
+              className="group"
+            >
+              <Card className="backdrop-blur-sm bg-card/80 border-border/50 shadow-lg hover:shadow-xl hover:border-primary/30 transition-all duration-300 relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                <CardHeader className="relative">
+                  <div className="flex items-center gap-3">
+                    <motion.div 
+                      className="w-12 h-12 rounded-xl hero-gradient flex items-center justify-center shadow-lg shadow-primary/20"
+                      whileHover={{ rotate: 5, scale: 1.05 }}
+                    >
+                      <Bell className="w-6 h-6 text-primary-foreground" />
+                    </motion.div>
+                    <div>
+                      <CardTitle>الإشعارات</CardTitle>
+                      <CardDescription>تفضيلات البريد الإلكتروني</CardDescription>
+                    </div>
                   </div>
-                  <div>
-                    <CardTitle>الإشعارات</CardTitle>
-                    <CardDescription>تفضيلات البريد الإلكتروني</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4 relative">
+                  <div className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/30 transition-colors">
+                    <Label htmlFor="productUpdates" className="cursor-pointer">تحديثات المنتج</Label>
+                    <Checkbox 
+                      id="productUpdates" 
+                      checked={notifications.productUpdates}
+                      onCheckedChange={(checked) => 
+                        setNotifications(prev => ({ ...prev, productUpdates: !!checked }))
+                      }
+                    />
                   </div>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="productUpdates" className="cursor-pointer">تحديثات المنتج</Label>
-                  <Checkbox 
-                    id="productUpdates" 
-                    checked={notifications.productUpdates}
-                    onCheckedChange={(checked) => 
-                      setNotifications(prev => ({ ...prev, productUpdates: !!checked }))
-                    }
-                  />
-                </div>
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="billingAlerts" className="cursor-pointer">تنبيهات الفواتير</Label>
-                  <Checkbox 
-                    id="billingAlerts" 
-                    checked={notifications.billingAlerts}
-                    onCheckedChange={(checked) => 
-                      setNotifications(prev => ({ ...prev, billingAlerts: !!checked }))
-                    }
-                  />
-                </div>
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="tips" className="cursor-pointer">نصائح ومقترحات</Label>
-                  <Checkbox 
-                    id="tips" 
-                    checked={notifications.tips}
-                    onCheckedChange={(checked) => 
-                      setNotifications(prev => ({ ...prev, tips: !!checked }))
-                    }
-                  />
-                </div>
-              </CardContent>
-            </Card>
+                  <div className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/30 transition-colors">
+                    <Label htmlFor="billingAlerts" className="cursor-pointer">تنبيهات الفواتير</Label>
+                    <Checkbox 
+                      id="billingAlerts" 
+                      checked={notifications.billingAlerts}
+                      onCheckedChange={(checked) => 
+                        setNotifications(prev => ({ ...prev, billingAlerts: !!checked }))
+                      }
+                    />
+                  </div>
+                  <div className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/30 transition-colors">
+                    <Label htmlFor="tips" className="cursor-pointer">نصائح ومقترحات</Label>
+                    <Checkbox 
+                      id="tips" 
+                      checked={notifications.tips}
+                      onCheckedChange={(checked) => 
+                        setNotifications(prev => ({ ...prev, tips: !!checked }))
+                      }
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
 
             {/* Security Section */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                    <Lock className="w-5 h-5 text-primary" />
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              whileHover={{ y: -2 }}
+              className="group"
+            >
+              <Card className="backdrop-blur-sm bg-card/80 border-border/50 shadow-lg hover:shadow-xl hover:border-primary/30 transition-all duration-300 relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                <CardHeader className="relative">
+                  <div className="flex items-center gap-3">
+                    <motion.div 
+                      className="w-12 h-12 rounded-xl hero-gradient flex items-center justify-center shadow-lg shadow-primary/20"
+                      whileHover={{ rotate: 5, scale: 1.05 }}
+                    >
+                      <Lock className="w-6 h-6 text-primary-foreground" />
+                    </motion.div>
+                    <div>
+                      <CardTitle>الأمان</CardTitle>
+                      <CardDescription>إدارة كلمة المرور</CardDescription>
+                    </div>
                   </div>
-                  <div>
-                    <CardTitle>الأمان</CardTitle>
-                    <CardDescription>إدارة كلمة المرور</CardDescription>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">كلمة المرور</p>
-                    <p className="text-sm text-muted-foreground">
-                      آخر تحديث: غير معروف
-                    </p>
-                  </div>
-                  <Dialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen}>
-                    <DialogTrigger asChild>
-                      <Button variant="outline">تغيير كلمة المرور</Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>تغيير كلمة المرور</DialogTitle>
-                        <DialogDescription>
-                          أدخل كلمة المرور الجديدة
-                        </DialogDescription>
-                      </DialogHeader>
-                      <div className="space-y-4 py-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="newPassword">كلمة المرور الجديدة</Label>
-                          <Input
-                            id="newPassword"
-                            type="password"
-                            value={newPassword}
-                            onChange={(e) => setNewPassword(e.target.value)}
-                            placeholder="أدخل كلمة المرور الجديدة"
-                          />
+                </CardHeader>
+                <CardContent className="relative">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium">كلمة المرور</p>
+                      <p className="text-sm text-muted-foreground">
+                        آخر تحديث: غير معروف
+                      </p>
+                    </div>
+                    <Dialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen}>
+                      <DialogTrigger asChild>
+                        <Button variant="outline" className="hover:border-primary hover:text-primary transition-colors">تغيير كلمة المرور</Button>
+                      </DialogTrigger>
+                      <DialogContent className="backdrop-blur-xl bg-card/95 border-border/50">
+                        <DialogHeader>
+                          <DialogTitle>تغيير كلمة المرور</DialogTitle>
+                          <DialogDescription>
+                            أدخل كلمة المرور الجديدة
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-4 py-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="newPassword">كلمة المرور الجديدة</Label>
+                            <Input
+                              id="newPassword"
+                              type="password"
+                              value={newPassword}
+                              onChange={(e) => setNewPassword(e.target.value)}
+                              placeholder="أدخل كلمة المرور الجديدة"
+                              className="bg-background/50 border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="confirmPassword">تأكيد كلمة المرور</Label>
+                            <Input
+                              id="confirmPassword"
+                              type="password"
+                              value={confirmPassword}
+                              onChange={(e) => setConfirmPassword(e.target.value)}
+                              placeholder="أعد إدخال كلمة المرور"
+                              className="bg-background/50 border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20"
+                            />
+                          </div>
+                          {newPassword && confirmPassword && newPassword !== confirmPassword && (
+                            <p className="text-sm text-destructive">كلمات المرور غير متطابقة</p>
+                          )}
+                          {newPassword && newPassword.length < 6 && (
+                            <p className="text-sm text-destructive">كلمة المرور قصيرة جداً (6 أحرف على الأقل)</p>
+                          )}
+                          <Button 
+                            onClick={handleChangePassword}
+                            disabled={changingPassword || newPassword !== confirmPassword || newPassword.length < 6}
+                            className="w-full hero-gradient text-primary-foreground"
+                          >
+                            {changingPassword && <Loader2 className="w-4 h-4 ml-2 animate-spin" />}
+                            تغيير كلمة المرور
+                          </Button>
                         </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="confirmPassword">تأكيد كلمة المرور</Label>
-                          <Input
-                            id="confirmPassword"
-                            type="password"
-                            value={confirmPassword}
-                            onChange={(e) => setConfirmPassword(e.target.value)}
-                            placeholder="أعد إدخال كلمة المرور"
-                          />
-                        </div>
-                        {newPassword && confirmPassword && newPassword !== confirmPassword && (
-                          <p className="text-sm text-destructive">كلمات المرور غير متطابقة</p>
-                        )}
-                        {newPassword && newPassword.length < 6 && (
-                          <p className="text-sm text-destructive">كلمة المرور قصيرة جداً (6 أحرف على الأقل)</p>
-                        )}
-                        <Button 
-                          onClick={handleChangePassword}
-                          disabled={changingPassword || newPassword !== confirmPassword || newPassword.length < 6}
-                          className="w-full"
-                        >
-                          {changingPassword && <Loader2 className="w-4 h-4 ml-2 animate-spin" />}
-                          تغيير كلمة المرور
-                        </Button>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
-                </div>
-              </CardContent>
-            </Card>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
           </div>
         </div>
       </main>
