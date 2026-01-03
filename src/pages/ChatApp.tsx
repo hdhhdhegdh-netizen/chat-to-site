@@ -1,14 +1,16 @@
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect, useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Send, Globe, Menu, X, Loader2, Trash2, Monitor, Smartphone, Tablet, ExternalLink, LayoutTemplate, LogOut, FolderOpen, Bot, Sparkles, Share2, Check, Copy, Link as LinkIcon } from "lucide-react";
+import { Globe, Menu, X, Loader2, Trash2, ExternalLink, LayoutTemplate, LogOut, FolderOpen, Bot, Sparkles, Share2, Check, Copy, Link as LinkIcon, Download, Monitor, Tablet, Smartphone } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAIChat } from "@/hooks/useAIChat";
 import { useAuth } from "@/hooks/useAuth";
 import { useProjects } from "@/hooks/useProjects";
 import { usePublish } from "@/hooks/usePublish";
 import { useToast } from "@/hooks/use-toast";
+import { useNotifications } from "@/components/notifications/NotificationProvider";
 import { motion, AnimatePresence } from "framer-motion";
+import ChatMessage from "@/components/chat/ChatMessage";
+import ChatInput from "@/components/chat/ChatInput";
 import TemplatesModal, { Template } from "@/components/templates/TemplatesModal";
 import {
   Dialog,
@@ -25,7 +27,6 @@ const ChatApp = () => {
   const { user, signOut, loading: authLoading } = useAuth();
   const { currentProject, createProject, updateProject, projects, setCurrentProject } = useProjects();
   const { isPublishing, publishSite } = usePublish();
-  const [input, setInput] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [previewDevice, setPreviewDevice] = useState<PreviewDevice>('desktop');
   const [showTemplates, setShowTemplates] = useState(false);
@@ -35,6 +36,7 @@ const ChatApp = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const { toast } = useToast();
+  const { addNotification } = useNotifications();
   const navigate = useNavigate();
 
   // Show templates modal for new users
@@ -78,18 +80,9 @@ const ChatApp = () => {
     }
   }, [currentProject]);
 
-  const handleSend = async () => {
-    if (!input.trim() || isStreaming) return;
-    const message = input;
-    setInput("");
+  const handleSend = async (message: string) => {
+    if (!message.trim() || isStreaming) return;
     await sendMessage(message);
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
-    }
   };
 
   const handlePublish = async () => {
@@ -111,6 +104,11 @@ const ChatApp = () => {
     if (result.success && result.published_url) {
       setPublishedUrl(result.published_url);
       setShowPublishDialog(true);
+      addNotification({
+        type: "success",
+        title: "تم النشر بنجاح! 🎉",
+        message: "موقعك الآن متاح للجميع على الإنترنت",
+      });
     }
   };
 
@@ -503,100 +501,18 @@ const ChatApp = () => {
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
               <AnimatePresence initial={false}>
                 {messages.map((message) => (
-                  <motion.div
-                    key={message.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    transition={{ duration: 0.3 }}
-                    className={message.type === "agent" ? "agent-message" : "user-message"}
-                  >
-                    <div className="flex items-start gap-3">
-                      {message.type === "agent" && (
-                        <div className="w-8 h-8 rounded-lg hero-gradient flex items-center justify-center flex-shrink-0">
-                          {message.status === "building" ? (
-                            <Loader2 className="w-4 h-4 text-primary-foreground animate-spin" />
-                          ) : (
-                            <Bot className="w-4 h-4 text-primary-foreground" />
-                          )}
-                        </div>
-                      )}
-                      <div className="flex-1">
-                        <p className="text-foreground leading-relaxed whitespace-pre-wrap text-sm">
-                          {message.content || (
-                            <span className="flex gap-1">
-                              <motion.span 
-                                className="w-2 h-2 rounded-full bg-primary/40"
-                                animate={{ opacity: [0.3, 1, 0.3] }}
-                                transition={{ duration: 1, repeat: Infinity }}
-                              />
-                              <motion.span 
-                                className="w-2 h-2 rounded-full bg-primary/40"
-                                animate={{ opacity: [0.3, 1, 0.3] }}
-                                transition={{ duration: 1, delay: 0.2, repeat: Infinity }}
-                              />
-                              <motion.span 
-                                className="w-2 h-2 rounded-full bg-primary/40"
-                                animate={{ opacity: [0.3, 1, 0.3] }}
-                                transition={{ duration: 1, delay: 0.4, repeat: Infinity }}
-                              />
-                            </span>
-                          )}
-                        </p>
-                        {message.status === "done" && message.type === "agent" && message.content && (
-                          <motion.div 
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            className="mt-2 flex items-center gap-2 text-xs text-muted-foreground"
-                          >
-                            <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
-                            تم التنفيذ
-                          </motion.div>
-                        )}
-                        {message.status === "error" && (
-                          <div className="mt-2 flex items-center gap-2 text-xs text-destructive">
-                            <div className="w-1.5 h-1.5 rounded-full bg-destructive" />
-                            فشل في التنفيذ
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </motion.div>
+                  <ChatMessage key={message.id} message={message} />
                 ))}
               </AnimatePresence>
-
               <div ref={messagesEndRef} />
             </div>
 
             {/* Input */}
-            <div className="p-4 border-t border-primary/10 bg-gradient-to-t from-card to-transparent backdrop-blur-sm">
-              <div className="flex gap-3">
-                <Input
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  placeholder="أخبر وكيلك بما تريد... مثال: أريد موقع لمكتب محاماة"
-                  className="flex-1 text-right text-sm border-primary/20 focus:border-primary/40 bg-background/80"
-                  disabled={isStreaming}
-                />
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                  <Button 
-                    onClick={handleSend} 
-                    disabled={!input.trim() || isStreaming} 
-                    className="hero-gradient shadow-glow"
-                  >
-                    {isStreaming ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <Send className="w-4 h-4" />
-                    )}
-                  </Button>
-                </motion.div>
-              </div>
-              <p className="mt-2 text-xs text-muted-foreground text-center">
-                ✨ الوكيل يبني موقعك ويمكنك نشره مباشرة
-              </p>
-            </div>
+            <ChatInput 
+              onSend={handleSend}
+              isStreaming={isStreaming}
+              placeholder="أخبر وكيلك بما تريد... مثال: أريد موقع لمكتب محاماة"
+            />
           </div>
 
           {/* Preview area */}
