@@ -117,10 +117,48 @@ export type Database = {
         }
         Relationships: []
       }
+      project_collaborators: {
+        Row: {
+          created_at: string
+          id: string
+          invited_by: string | null
+          permission: string
+          project_id: string
+          user_email: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          invited_by?: string | null
+          permission?: string
+          project_id: string
+          user_email: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          invited_by?: string | null
+          permission?: string
+          project_id?: string
+          user_email?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_collaborators_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       projects: {
         Row: {
           created_at: string
+          custom_css: string | null
           description: string | null
+          facebook_pixel_id: string | null
+          google_analytics_id: string | null
           html_content: string | null
           id: string
           name: string
@@ -137,7 +175,10 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          custom_css?: string | null
           description?: string | null
+          facebook_pixel_id?: string | null
+          google_analytics_id?: string | null
           html_content?: string | null
           id?: string
           name?: string
@@ -154,7 +195,10 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          custom_css?: string | null
           description?: string | null
+          facebook_pixel_id?: string | null
+          google_analytics_id?: string | null
           html_content?: string | null
           id?: string
           name?: string
@@ -170,6 +214,41 @@ export type Database = {
           whatsapp_number?: string | null
         }
         Relationships: []
+      }
+      site_versions: {
+        Row: {
+          created_at: string
+          description: string | null
+          html_content: string
+          id: string
+          project_id: string
+          version_number: number
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          html_content: string
+          id?: string
+          project_id: string
+          version_number?: number
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          html_content?: string
+          id?: string
+          project_id?: string
+          version_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "site_versions_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       subscription_plans: {
         Row: {
